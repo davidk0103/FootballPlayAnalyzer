@@ -17,10 +17,28 @@ services:
       timeout: 3s
       retries: 10
 
+  # One Redis for two roles: Celery broker (db 0) and analytics cache (db 1).
+  # volatile-lru only evicts keys that have a TTL (cache entries), never queued messages.
+  # appendonly keeps queued messages across a Redis restart.
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "volatile-lru"]
+    ports:
+      - "${REDIS_HOST_PORT:-6380}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   backend:
     build: ./backend
-    environment:
+    environment: &backend-env
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-playbookiq}:${POSTGRES_PASSWORD:-playbookiq}@db:5432/${POSTGRES_DB:-playbookiq}
+      BROKER_URL: redis://redis:6379/0
+      CACHE_URL: redis://redis:6379/1
       DATA_CACHE_DIR: /app/data/cache
       CORS_ORIGINS: '["http://localhost:5317","http://127.0.0.1:5317"]'
     ports:
@@ -29,6 +47,52 @@ services:
       - nflverse-cache:/app/data/cache
     depends_on:
       db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Celery worker. Scale processes with `docker compose up -d --scale worker=4`;
+  # each container runs WORKER_CONCURRENCY prefork pool processes (see docs/architecture.md).
+  worker:
+    build: ./backend
+    command:
+      - sh
+      - -c
+      - exec celery -A app.worker.celery_app worker --loglevel=INFO --pool=prefork --concurrency=$${WORKER_CONCURRENCY} -n worker@%h
+    environment:
+      <<: *backend-env
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-2}
+    volumes:
+      - nflverse-cache:/app/data/cache
+    # SIGTERM starts a warm shutdown: stop taking messages, let running imports finish.
+    # Past this grace period Docker sends SIGKILL and crash recovery takes over.
+    stop_signal: SIGTERM
+    stop_grace_period: 120s
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.worker.celery_app inspect ping -d worker@$$HOSTNAME --timeout 5 | grep -q pong"]
+      interval: 30s
+      timeout: 15s
+      start_period: 20s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Schedules the stale-job reaper. Run exactly one beat, regardless of worker count.
+  beat:
+    build: ./backend
+    command: ["celery", "-A", "app.worker.celery_app", "beat", "--loglevel=INFO", "--schedule", "/tmp/celerybeat-schedule"]
+    environment: *backend-env
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /tmp/celerybeat-schedule"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    depends_on:
+      redis:
         condition: service_healthy
 
   frontend:
@@ -61,6 +125,18 @@ services:
       timeout: 3s
       retries: 20
 
+  redis-test:
+    image: redis:7-alpine
+    profiles: ["test"]
+    ports:
+      - "6381:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
 volumes:
   pgdata:
+  redisdata:
   nflverse-cache:
