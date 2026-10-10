@@ -36,7 +36,8 @@ Paginated response: `{"items": [...], "page": 1, "page_size": 25, "total": 285}`
 
 `GET /api/v1/analytics/team-comparison?team_a=KC&team_b=BUF&season=2024`
 
-`team_a` / `team_b` accept a team abbreviation. Shared filters (all optional):
+`team_a` / `team_b` accept a team abbreviation or id and must differ. `season` is
+required. Shared filters (all optional):
 
 | Param | Values | Meaning |
 | --- | --- | --- |
@@ -66,8 +67,11 @@ Every analytics response (team stats, and each team in a comparison) uses:
 }
 ```
 
-The comparison endpoint returns `{"filters", "team_a", "team_b", "definitions", "datasets", "warnings"}`
-where `team_a` / `team_b` each hold `team`, `sample`, `metrics`, and `warnings`.
+The comparison endpoint returns `{"filters", "team_a", "team_b", "definitions", "dataset", "warnings"}`
+where `team_a` / `team_b` each hold `team`, `sample`, `metrics`, and `warnings`, and
+the top-level `warnings` repeats them prefixed with the team abbreviation
+(`"KC: Sample under 30 plays"`). `filters` echoes every filter key, with `null`
+for filters that were not set. `dataset` is the latest completed import for the season.
 
 Rules:
 

@@ -1,0 +1,125 @@
+{
+    "filters": {
+        "season": 2024,
+        "side": "offense",
+        "season_type": null,
+        "down": null,
+        "distance": null,
+        "field_zone": null,
+        "qtr": null,
+        "play_type": null
+    },
+    "team_a": {
+        "team": {
+            "id": 14,
+            "abbreviation": "KC",
+            "name": "Kansas City Chiefs"
+        },
+        "sample": {
+            "plays": 1223,
+            "games": 20
+        },
+        "metrics": {
+            "epa_per_play": {
+                "value": 0.0625,
+                "numerator": 76.4828,
+                "denominator": 1223
+            },
+            "success_rate": {
+                "value": 0.4734,
+                "numerator": 579.0,
+                "denominator": 1223
+            },
+            "yards_per_play": {
+                "value": 5.2903,
+                "numerator": 6470.0,
+                "denominator": 1223
+            },
+            "pass_rate": {
+                "value": 0.5993,
+                "numerator": 733.0,
+                "denominator": 1223
+            },
+            "third_down_conversion_rate": {
+                "value": 0.4824,
+                "numerator": 123.0,
+                "denominator": 255
+            },
+            "explosive_play_rate": {
+                "value": 0.0769,
+                "numerator": 94.0,
+                "denominator": 1223
+            },
+            "turnovers_per_game": {
+                "value": 0.9,
+                "numerator": 18.0,
+                "denominator": 20
+            }
+        },
+        "warnings": []
+    },
+    "team_b": {
+        "team": {
+            "id": 19,
+            "abbreviation": "PHI",
+            "name": "Philadelphia Eagles"
+        },
+        "sample": {
+            "plays": 1334,
+            "games": 21
+        },
+        "metrics": {
+            "epa_per_play": {
+                "value": 0.1199,
+                "numerator": 159.9191,
+                "denominator": 1334
+            },
+            "success_rate": {
+                "value": 0.449,
+                "numerator": 599.0,
+                "denominator": 1334
+            },
+            "yards_per_play": {
+                "value": 5.7864,
+                "numerator": 7719.0,
+                "denominator": 1334
+            },
+            "pass_rate": {
+                "value": 0.4475,
+                "numerator": 597.0,
+                "denominator": 1334
+            },
+            "third_down_conversion_rate": {
+                "value": 0.4101,
+                "numerator": 114.0,
+                "denominator": 278
+            },
+            "explosive_play_rate": {
+                "value": 0.1154,
+                "numerator": 154.0,
+                "denominator": 1334
+            },
+            "turnovers_per_game": {
+                "value": 0.619,
+                "numerator": 13.0,
+                "denominator": 21
+            }
+        },
+        "warnings": []
+    },
+    "definitions": {
+        "epa_per_play": "Sum of expected points added / scrimmage plays with EPA. Scrimmage plays are passes (incl. sacks) and runs (incl. scrambles), excluding penalties that nullified the play, kneels, spikes, and two-point tries.",
+        "success_rate": "Share of scrimmage plays with positive EPA (the nflverse definition of success, not the 40/60/100% down-based rule).",
+        "yards_per_play": "Total yards gained / scrimmage plays.",
+        "pass_rate": "Pass plays (including sacks) / scrimmage plays.",
+        "third_down_conversion_rate": "Third-down scrimmage plays that gained a first down (including by defensive penalty on a play that stood) / third-down scrimmage plays.",
+        "explosive_play_rate": "Runs of 10+ yards or passes of 20+ yards / scrimmage plays.",
+        "turnovers_per_game": "(Interceptions + fumbles lost) / games in the sample."
+    },
+    "dataset": {
+        "source": "nflverse pbp",
+        "version": "2026-10-10 11:17:28 EDT",
+        "sha256": "3fd2896bc0b911b615142d2f1fabae54a4bbba5ab7b73b28187b118ef8af6a3b"
+    },
+    "warnings": []
+}

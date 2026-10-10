@@ -1,0 +1,1442 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PlaybookIQ API",
+    "description": "Team analytics on nflverse play-by-play data.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health/live": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Live",
+        "operationId": "live_health_live_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": [
+          "health"
+        ],
+        "summary": "Ready",
+        "operationId": "ready_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/seasons": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "List Seasons",
+        "operationId": "list_seasons_api_v1_seasons_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SeasonOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Seasons Api V1 Seasons Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/teams": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "List Teams",
+        "operationId": "list_teams_api_v1_teams_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TeamOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Teams Api V1 Teams Get"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/teams/{team_id}": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Get Team",
+        "operationId": "get_team_api_v1_teams__team_id__get",
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Team Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/teams/{team_id}/stats": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Team Stats",
+        "operationId": "team_stats_api_v1_teams__team_id__stats_get",
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Team Id"
+            }
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 2100,
+              "minimum": 1999,
+              "description": "Season year, e.g. 2024",
+              "title": "Season"
+            },
+            "description": "Season year, e.g. 2024"
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Side",
+              "description": "Team's plays on offense or allowed on defense",
+              "default": "offense"
+            },
+            "description": "Team's plays on offense or allowed on defense"
+          },
+          {
+            "name": "season_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SeasonType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "REG or POST",
+              "title": "Season Type"
+            },
+            "description": "REG or POST"
+          },
+          {
+            "name": "down",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Down(s) 1-4",
+              "title": "Down"
+            },
+            "description": "Down(s) 1-4"
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Distance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Yards to go: short 1-3, medium 4-7, long 8+",
+              "title": "Distance"
+            },
+            "description": "Yards to go: short 1-3, medium 4-7, long 8+"
+          },
+          {
+            "name": "field_zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FieldZone"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20",
+              "title": "Field Zone"
+            },
+            "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20"
+          },
+          {
+            "name": "qtr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Quarter(s) 1-5 (5 = overtime)",
+              "title": "Qtr"
+            },
+            "description": "Quarter(s) 1-5 (5 = overtime)"
+          },
+          {
+            "name": "play_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PlayType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "pass or run",
+              "title": "Play Type"
+            },
+            "description": "pass or run"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamStatsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/games": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "List Games",
+        "operationId": "list_games_api_v1_games_get",
+        "parameters": [
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 1999
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Season"
+            }
+          },
+          {
+            "name": "week",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Week"
+            }
+          },
+          {
+            "name": "team",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Team abbreviation or id",
+              "title": "Team"
+            },
+            "description": "Team abbreviation or id"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 25,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GamePage"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/games/{game_id}": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Get Game",
+        "operationId": "get_game_api_v1_games__game_id__get",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Game Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameDetailOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/analytics/team-comparison": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Team Comparison",
+        "operationId": "team_comparison_api_v1_analytics_team_comparison_get",
+        "parameters": [
+          {
+            "name": "team_a",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Team abbreviation or id",
+              "title": "Team A"
+            },
+            "description": "Team abbreviation or id"
+          },
+          {
+            "name": "team_b",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Team abbreviation or id",
+              "title": "Team B"
+            },
+            "description": "Team abbreviation or id"
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 2100,
+              "minimum": 1999,
+              "description": "Season year, e.g. 2024",
+              "title": "Season"
+            },
+            "description": "Season year, e.g. 2024"
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Side",
+              "description": "Team's plays on offense or allowed on defense",
+              "default": "offense"
+            },
+            "description": "Team's plays on offense or allowed on defense"
+          },
+          {
+            "name": "season_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SeasonType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "REG or POST",
+              "title": "Season Type"
+            },
+            "description": "REG or POST"
+          },
+          {
+            "name": "down",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Down(s) 1-4",
+              "title": "Down"
+            },
+            "description": "Down(s) 1-4"
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Distance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Yards to go: short 1-3, medium 4-7, long 8+",
+              "title": "Distance"
+            },
+            "description": "Yards to go: short 1-3, medium 4-7, long 8+"
+          },
+          {
+            "name": "field_zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FieldZone"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20",
+              "title": "Field Zone"
+            },
+            "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20"
+          },
+          {
+            "name": "qtr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Quarter(s) 1-5 (5 = overtime)",
+              "title": "Qtr"
+            },
+            "description": "Quarter(s) 1-5 (5 = overtime)"
+          },
+          {
+            "name": "play_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PlayType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "pass or run",
+              "title": "Play Type"
+            },
+            "description": "pass or run"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamComparisonResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "DatasetOut": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source",
+          "version",
+          "sha256"
+        ],
+        "title": "DatasetOut"
+      },
+      "Distance": {
+        "type": "string",
+        "enum": [
+          "short",
+          "medium",
+          "long"
+        ],
+        "title": "Distance"
+      },
+      "ErrorBody": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "details": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "title": "ErrorBody"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse"
+      },
+      "FieldZone": {
+        "type": "string",
+        "enum": [
+          "own_deep",
+          "own",
+          "opp",
+          "red_zone"
+        ],
+        "title": "FieldZone"
+      },
+      "FiltersOut": {
+        "properties": {
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "side": {
+            "type": "string",
+            "title": "Side"
+          },
+          "season_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Season Type"
+          },
+          "down": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Down"
+          },
+          "distance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distance"
+          },
+          "field_zone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field Zone"
+          },
+          "qtr": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qtr"
+          },
+          "play_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Play Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "season",
+          "side"
+        ],
+        "title": "FiltersOut"
+      },
+      "GameDetailOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "external_game_id": {
+            "type": "string",
+            "title": "External Game Id"
+          },
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "season_type": {
+            "type": "string",
+            "title": "Season Type"
+          },
+          "week": {
+            "type": "integer",
+            "title": "Week"
+          },
+          "game_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Game Date"
+          },
+          "home_team": {
+            "$ref": "#/components/schemas/TeamRef"
+          },
+          "away_team": {
+            "$ref": "#/components/schemas/TeamRef"
+          },
+          "play_count": {
+            "type": "integer",
+            "title": "Play Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "external_game_id",
+          "season",
+          "season_type",
+          "week",
+          "game_date",
+          "home_team",
+          "away_team",
+          "play_count"
+        ],
+        "title": "GameDetailOut"
+      },
+      "GameOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "external_game_id": {
+            "type": "string",
+            "title": "External Game Id"
+          },
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "season_type": {
+            "type": "string",
+            "title": "Season Type"
+          },
+          "week": {
+            "type": "integer",
+            "title": "Week"
+          },
+          "game_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Game Date"
+          },
+          "home_team": {
+            "$ref": "#/components/schemas/TeamRef"
+          },
+          "away_team": {
+            "$ref": "#/components/schemas/TeamRef"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "external_game_id",
+          "season",
+          "season_type",
+          "week",
+          "game_date",
+          "home_team",
+          "away_team"
+        ],
+        "title": "GameOut"
+      },
+      "GamePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GameOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "title": "GamePage"
+      },
+      "HealthOut": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "HealthOut"
+      },
+      "MetricOut": {
+        "properties": {
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "numerator": {
+            "type": "number",
+            "title": "Numerator"
+          },
+          "denominator": {
+            "type": "integer",
+            "title": "Denominator"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value",
+          "numerator",
+          "denominator"
+        ],
+        "title": "MetricOut"
+      },
+      "MetricsOut": {
+        "properties": {
+          "epa_per_play": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "success_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "yards_per_play": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "pass_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "third_down_conversion_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "explosive_play_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "turnovers_per_game": {
+            "$ref": "#/components/schemas/MetricOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "epa_per_play",
+          "success_rate",
+          "yards_per_play",
+          "pass_rate",
+          "third_down_conversion_rate",
+          "explosive_play_rate",
+          "turnovers_per_game"
+        ],
+        "title": "MetricsOut"
+      },
+      "PlayType": {
+        "type": "string",
+        "enum": [
+          "pass",
+          "run"
+        ],
+        "title": "PlayType"
+      },
+      "SampleOut": {
+        "properties": {
+          "plays": {
+            "type": "integer",
+            "title": "Plays"
+          },
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plays",
+          "games"
+        ],
+        "title": "SampleOut"
+      },
+      "SeasonOut": {
+        "properties": {
+          "season": {
+            "type": "integer",
+            "title": "Season"
+          },
+          "plays": {
+            "type": "integer",
+            "title": "Plays"
+          },
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          },
+          "dataset_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dataset Version"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          }
+        },
+        "type": "object",
+        "required": [
+          "season",
+          "plays",
+          "games",
+          "dataset_version",
+          "sha256"
+        ],
+        "title": "SeasonOut"
+      },
+      "SeasonType": {
+        "type": "string",
+        "enum": [
+          "REG",
+          "POST"
+        ],
+        "title": "SeasonType"
+      },
+      "Side": {
+        "type": "string",
+        "enum": [
+          "offense",
+          "defense"
+        ],
+        "title": "Side"
+      },
+      "TeamComparisonResponse": {
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/FiltersOut"
+          },
+          "team_a": {
+            "$ref": "#/components/schemas/TeamStatsOut"
+          },
+          "team_b": {
+            "$ref": "#/components/schemas/TeamStatsOut"
+          },
+          "definitions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Definitions"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/DatasetOut"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filters",
+          "team_a",
+          "team_b",
+          "definitions",
+          "dataset",
+          "warnings"
+        ],
+        "title": "TeamComparisonResponse"
+      },
+      "TeamOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "abbreviation": {
+            "type": "string",
+            "title": "Abbreviation"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "conference": {
+            "type": "string",
+            "title": "Conference"
+          },
+          "division": {
+            "type": "string",
+            "title": "Division"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "abbreviation",
+          "name",
+          "conference",
+          "division"
+        ],
+        "title": "TeamOut"
+      },
+      "TeamRef": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "abbreviation": {
+            "type": "string",
+            "title": "Abbreviation"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "abbreviation",
+          "name"
+        ],
+        "title": "TeamRef"
+      },
+      "TeamStatsOut": {
+        "properties": {
+          "team": {
+            "$ref": "#/components/schemas/TeamRef"
+          },
+          "sample": {
+            "$ref": "#/components/schemas/SampleOut"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/MetricsOut"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "team",
+          "sample",
+          "metrics",
+          "warnings"
+        ],
+        "title": "TeamStatsOut"
+      },
+      "TeamStatsResponse": {
+        "properties": {
+          "team": {
+            "$ref": "#/components/schemas/TeamRef"
+          },
+          "sample": {
+            "$ref": "#/components/schemas/SampleOut"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/MetricsOut"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/FiltersOut"
+          },
+          "definitions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Definitions"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/DatasetOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "team",
+          "sample",
+          "metrics",
+          "warnings",
+          "filters",
+          "definitions",
+          "dataset"
+        ],
+        "title": "TeamStatsResponse"
+      }
+    }
+  }
+}
