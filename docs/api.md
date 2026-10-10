@@ -9,6 +9,12 @@ Base URL: `http://localhost:8317`. Interactive docs at `/docs`, schema at `/open
 | GET | `/health/live` | Process is up. Always `{"status": "ok"}`. |
 | GET | `/health/ready` | Database reachable. 200 `{"status": "ok"}` or 503. |
 
+## Seasons
+
+| Method | Path | Description |
+| --- | --- | --- |
+| GET | `/api/v1/seasons` | Seasons with imported data: `season`, `plays`, `games`, `dataset_version`, `sha256`. Feeds the season picker. |
+
 ## Teams
 
 | Method | Path | Description |
