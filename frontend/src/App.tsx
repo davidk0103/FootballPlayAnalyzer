@@ -10,6 +10,8 @@ const ComparePage = lazy(() =>
   import('@/pages/ComparePage').then((m) => ({ default: m.ComparePage })),
 )
 
+const JobsPage = lazy(() => import('@/pages/JobsPage').then((m) => ({ default: m.JobsPage })))
+
 const navClass = ({ isActive }: { isActive: boolean }) =>
   cn(
     'rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-muted',
@@ -31,6 +33,9 @@ export function App() {
             <NavLink to="/compare" className={navClass}>
               Compare
             </NavLink>
+            <NavLink to="/jobs" className={navClass}>
+              Jobs
+            </NavLink>
           </nav>
           <div className="ml-auto">
             <ThemeToggle />
@@ -46,6 +51,14 @@ export function App() {
             element={
               <Suspense fallback={<Skeleton className="h-96" aria-label="Loading page" />}>
                 <ComparePage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/jobs"
+            element={
+              <Suspense fallback={<Skeleton className="h-96" aria-label="Loading page" />}>
+                <JobsPage />
               </Suspense>
             }
           />

@@ -7,6 +7,11 @@ export type TeamStats = components['schemas']['TeamStatsOut']
 export type Metric = components['schemas']['MetricOut']
 export type Metrics = components['schemas']['MetricsOut']
 export type MetricKey = keyof Metrics
+export type Job = components['schemas']['JobOut']
+export type JobStatus = Job['status']
+export type JobPage = components['schemas']['JobPage']
+export type JobAttempt = components['schemas']['JobAttemptOut']
+export type CacheStats = components['schemas']['CacheStatsOut']
 type ErrorBody = components['schemas']['ErrorBody']
 
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? ''
@@ -15,13 +20,21 @@ export class ApiError extends Error {
   readonly status: number
   readonly code: string
   readonly requestId: string | null
+  readonly details: unknown
 
-  constructor(status: number, code: string, message: string, requestId: string | null) {
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    requestId: string | null,
+    details: unknown = null,
+  ) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.code = code
     this.requestId = requestId
+    this.details = details
   }
 }
 
@@ -41,11 +54,25 @@ export function buildQuery(params: Record<string, QueryValue>): string {
   return text ? `?${text}` : ''
 }
 
-async function getJson<T>(path: string, params: Record<string, QueryValue> = {}): Promise<T> {
+interface RequestOptions {
+  method?: 'GET' | 'POST'
+  params?: Record<string, QueryValue>
+  body?: unknown
+  headers?: Record<string, string>
+}
+
+async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { method = 'GET', params = {}, body, headers = {} } = options
   let response: Response
   try {
     response = await fetch(`${BASE_URL}${path}${buildQuery(params)}`, {
-      headers: { Accept: 'application/json' },
+      method,
+      headers: {
+        Accept: 'application/json',
+        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...headers,
+      },
+      body: body === undefined ? undefined : JSON.stringify(body),
     })
   } catch {
     throw new ApiError(0, 'network_error', 'Could not reach the PlaybookIQ API.', null)
@@ -62,9 +89,31 @@ async function getJson<T>(path: string, params: Record<string, QueryValue> = {})
       error.code ?? `http_${response.status}`,
       error.message ?? `Request failed with status ${response.status}`,
       error.request_id ?? response.headers.get('X-Request-ID'),
+      error.details ?? null,
     )
   }
   return (await response.json()) as T
+}
+
+function getJson<T>(path: string, params: Record<string, QueryValue> = {}): Promise<T> {
+  return request<T>(path, { params })
+}
+
+export const ACTIVE_JOB_STATUSES: readonly JobStatus[] = [
+  'queued',
+  'running',
+  'retrying',
+  'cancel_requested',
+]
+
+export function isActiveJob(job: Pick<Job, 'status'>): boolean {
+  return ACTIVE_JOB_STATUSES.includes(job.status)
+}
+
+export interface ImportJobInput {
+  season: number
+  force: boolean
+  idempotencyKey: string
 }
 
 export interface ComparisonQuery {
@@ -96,4 +145,16 @@ export const api = {
       qtr: q.qtr,
       play_type: q.playType,
     }),
+  jobs: (q: { status?: JobStatus; page?: number; pageSize?: number } = {}) =>
+    getJson<JobPage>('/api/v1/jobs', { status: q.status, page: q.page, page_size: q.pageSize }),
+  job: (id: string) => getJson<Job>(`/api/v1/jobs/${id}`),
+  jobAttempts: (id: string) => getJson<JobAttempt[]>(`/api/v1/jobs/${id}/attempts`),
+  submitImport: (input: ImportJobInput) =>
+    request<Job>('/api/v1/jobs/import', {
+      method: 'POST',
+      body: { season: input.season, force: input.force },
+      headers: { 'Idempotency-Key': input.idempotencyKey },
+    }),
+  cancelJob: (id: string) => request<Job>(`/api/v1/jobs/${id}/cancel`, { method: 'POST' }),
+  cacheStats: () => getJson<CacheStats>('/api/v1/cache/stats'),
 }

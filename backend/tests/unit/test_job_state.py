@@ -175,3 +175,9 @@ class TestErrorClassification:
 
     def test_describe_timeout(self) -> None:
         assert describe(SoftTimeLimitExceeded())[0] == "Timeout"
+
+    def test_describe_http_status(self) -> None:
+        assert describe(self._status_error(404)) == (
+            "HTTPStatusError",
+            "HTTP 404 from https://example.test (no file published for this season)",
+        )

@@ -47,4 +47,8 @@ def describe(exc: BaseException) -> tuple[str, str]:
     root = root_cause(exc)
     if isinstance(root, SoftTimeLimitExceeded):
         return "Timeout", "job exceeded its time limit"
+    if isinstance(root, httpx.HTTPStatusError):
+        status = root.response.status_code
+        hint = " (no file published for this season)" if status == 404 else ""
+        return "HTTPStatusError", f"HTTP {status} from {root.request.url}{hint}"
     return type(root).__name__, str(root)[:2000] or type(root).__name__
