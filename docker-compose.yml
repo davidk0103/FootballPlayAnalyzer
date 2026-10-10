@@ -62,6 +62,8 @@ services:
     environment:
       <<: *backend-env
       WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-2}
+      # Test-only hooks for practicing failure scenarios (docs/architecture.md). Off by default.
+      ENABLE_FAULT_INJECTION: ${ENABLE_FAULT_INJECTION:-false}
     volumes:
       - nflverse-cache:/app/data/cache
     # SIGTERM starts a warm shutdown: stop taking messages, let running imports finish.
