@@ -72,7 +72,7 @@ describe('JobsPage', () => {
     expect(within(row).getByText('43,110 plays stored')).toBeInTheDocument()
 
     await user.click(within(row).getByRole('button'))
-    expect(location.current).toBe(`/jobs?job=${done.id}`)
+    await waitFor(() => expect(location.current).toBe(`/jobs?job=${done.id}`))
     expect(await screen.findByText('Attempt 1: Succeeded')).toBeInTheDocument()
     expect(screen.getByText('285')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Cancel job' })).not.toBeInTheDocument()
@@ -107,7 +107,7 @@ describe('JobsPage', () => {
     await waitFor(() => expect(keys).toHaveLength(1))
     expect(keys[0]).toMatch(/^[0-9a-f-]{36}$/)
     expect(await screen.findByText('Waiting for a worker')).toBeInTheDocument()
-    expect(location.current).toBe(`/jobs?job=${QUEUED_ID}`)
+    await waitFor(() => expect(location.current).toBe(`/jobs?job=${QUEUED_ID}`))
     // Active jobs are polled; the row flips to succeeded without any user action.
     expect(await screen.findByText('Succeeded', {}, { timeout: 5000 })).toBeInTheDocument()
   })
@@ -149,7 +149,7 @@ describe('JobsPage', () => {
 
     expect(await screen.findByText('This season is already being imported')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'View the running job' }))
-    expect(location.current).toBe(`/jobs?job=${QUEUED_ID}`)
+    await waitFor(() => expect(location.current).toBe(`/jobs?job=${QUEUED_ID}`))
     expect(await screen.findByRole('button', { name: 'Cancel job' })).toBeInTheDocument()
   })
 
@@ -185,7 +185,7 @@ describe('JobsPage', () => {
     renderWithProviders(<JobsPage />, { route: '/jobs' })
     await user.selectOptions(await screen.findByLabelText('Filter by status'), 'failed')
     expect(await screen.findByText('No jobs with this status')).toBeInTheDocument()
-    expect(location.current).toBe('/jobs?status=failed')
+    await waitFor(() => expect(location.current).toBe('/jobs?status=failed'))
     expect(seen).toContain('failed')
   })
 

@@ -51,8 +51,8 @@ export function ImportJobForm({ onShowJob }: { onShowJob: (jobId: string) => voi
     retry: (count, error) => error instanceof ApiError && error.status === 0 && count < 2,
     onSuccess: (job) => {
       keyRef.current = null
-      void queryClient.invalidateQueries({ queryKey: ['jobs'] })
       onShowJob(job.id)
+      void queryClient.invalidateQueries({ queryKey: ['jobs'] })
     },
     onError: () => {
       keyRef.current = null
