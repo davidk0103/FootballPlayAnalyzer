@@ -7,7 +7,8 @@
 ## Source
 
 - [nflverse-data](https://github.com/nflverse/nflverse-data) release `pbp`,
-  file `play_by_play_<season>.parquet`. Seasons 2023 and 2024 in M1.
+  file `play_by_play_<season>.parquet`. Seasons 2023 and 2024 were profiled in M1;
+  from M2 any season from 1999 can be imported as a background job.
 - Version marker: the release's `timestamp.json` plus each file's SHA-256.
 - Players: release `players`, file `players.parquet`, keyed on `gsis_id`.
 - Field definitions: the nflreadr data dictionary (`dictionary_pbp.csv`, 372 fields).
@@ -56,7 +57,11 @@ The plan's "still to verify" items, resolved against the real files:
    on pass/run rows; `success` always equals `epa > 0`.
 2. **Team abbreviations.** Both seasons use the same 32 abbreviations
    (ARI ... WAS, with `LA` for the Rams, `LAC`, `LV`). No legacy codes
-   (OAK, SD, STL) appear in 2023-2024, so M1 needs no abbreviation mapping.
+   (OAK, SD, STL) appear in 2023-2024. Older seasons do use them, so ingestion maps
+   `OAK -> LV` (through 2019), `SD -> LAC` (through 2016), and `STL -> LA` (through
+   2015) before validation. Each franchise keeps one `teams` row and appears under
+   its current name (2015 St. Louis plays show as "Los Angeles Rams"). Verified on
+   the real 2015 file: 42,088 plays stored, 0 rejected.
    The `teams` table is seeded from a static list keyed on these codes.
 3. **`third_down_converted` and penalties.** It is 1 when a third-down play that
    stood produced a first down, *including* first downs awarded by a defensive

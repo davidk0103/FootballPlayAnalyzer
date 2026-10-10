@@ -6,7 +6,7 @@ from typing import Any
 
 import pandas as pd
 
-from app.ingest.teams import TEAM_ABBREVIATIONS
+from app.ingest.teams import FRANCHISE_ALIASES, TEAM_ABBREVIATIONS
 
 BOOL_COLUMNS: dict[str, str] = {
     "success": "success",
@@ -93,6 +93,9 @@ def _is_whole(series: pd.Series) -> pd.Series:
     return series.isna() | (series == series.round())
 
 
+TEAM_COLUMNS = ("home_team", "away_team", "posteam", "defteam")
+
+
 def rejection_reasons(df: pd.DataFrame, season: int) -> pd.Series:
     """Return the first failing validation reason per row (empty string when valid)."""
     reasons = pd.Series("", index=df.index, dtype=object)
@@ -104,7 +107,7 @@ def rejection_reasons(df: pd.DataFrame, season: int) -> pd.Series:
         mark(df[col].isna(), f"missing {col}")
     mark(df["season"].notna() & (df["season"] != season), f"season does not match {season}")
     mark(~df["season_type"].isin(VALID_SEASON_TYPES), "unknown season_type")
-    for col in ("home_team", "away_team", "posteam", "defteam"):
+    for col in TEAM_COLUMNS:
         mark(df[col].notna() & ~df[col].isin(TEAM_ABBREVIATIONS), f"unknown team in {col}")
     mark(df["down"].notna() & ~df["down"].isin([1, 2, 3, 4]), "down out of range")
     mark(df["qtr"].notna() & ~df["qtr"].isin([1, 2, 3, 4, 5]), "qtr out of range")
@@ -124,7 +127,11 @@ def transform(raw: pd.DataFrame, season: int) -> TransformResult:
         "null_play_type": int(raw["play_type"].isna().sum()),
         "no_play": int(raw["play_type"].isin(NOT_STORED_PLAY_TYPES).sum()),
     }
-    candidates = raw[raw["play_type"].notna() & ~raw["play_type"].isin(NOT_STORED_PLAY_TYPES)]
+    candidates = raw[
+        raw["play_type"].notna() & ~raw["play_type"].isin(NOT_STORED_PLAY_TYPES)
+    ].copy()
+    for col in TEAM_COLUMNS:
+        candidates[col] = candidates[col].replace(FRANCHISE_ALIASES)
 
     reasons = rejection_reasons(candidates, season)
     bad = candidates[reasons != ""]

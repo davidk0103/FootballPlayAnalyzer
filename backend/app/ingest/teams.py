@@ -1,4 +1,4 @@
-"""The 32 franchises as abbreviated in nflverse 2023-2024 data (see docs/data.md)."""
+"""The 32 franchises as abbreviated in current nflverse data (see docs/data.md)."""
 
 from typing import NamedTuple
 
@@ -46,3 +46,11 @@ TEAMS: tuple[TeamInfo, ...] = (
 )
 
 TEAM_ABBREVIATIONS = frozenset(t.abbreviation for t in TEAMS)
+
+# Abbreviations nflverse uses for seasons before a relocation, mapped to the franchise's
+# current abbreviation so every season attaches to the same 32 teams.
+FRANCHISE_ALIASES: dict[str, str] = {
+    "OAK": "LV",  # Oakland Raiders, through 2019
+    "SD": "LAC",  # San Diego Chargers, through 2016
+    "STL": "LA",  # St. Louis Rams, through 2015
+}

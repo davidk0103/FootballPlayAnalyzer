@@ -27,6 +27,20 @@ def test_transform_converts_types_and_keeps_nulls() -> None:
     assert set(plays.columns) >= {"external_play_id", "is_pass", "yard_line_100", "epa"}
 
 
+def test_transform_maps_relocated_franchises_to_current_abbreviations() -> None:
+    raw = sample()
+    kc = raw["home_team"] == "KC"
+    for col in ("home_team", "posteam", "defteam"):
+        raw.loc[kc & (raw[col] == "KC"), col] = "OAK"
+    raw.loc[raw["away_team"] == "DET", "away_team"] = "STL"
+    result = transform(raw, 2023)
+    assert result.rejected == []
+    assert len(result.plays) == 309
+    game = result.games[result.games["external_game_id"] == "2023_01_DET_KC"].iloc[0]
+    assert (game["home_team"], game["away_team"]) == ("LV", "LA")
+    assert "OAK" not in set(result.plays["offense_team"])
+
+
 def test_rejection_reasons_flag_each_problem() -> None:
     df = sample()
     df = df[df["play_type"] == "pass"].head(5).copy()
