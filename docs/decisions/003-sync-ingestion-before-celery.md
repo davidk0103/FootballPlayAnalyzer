@@ -21,3 +21,6 @@ function.
 - Idempotency is already required in M1: a file whose SHA-256 matches a completed
   dataset is skipped, and play upserts are keyed on `(game_id, external_play_id)`.
 - No job table yet; `datasets.status` records `completed` or `failed`.
+
+> Update (M2): the Celery task now calls `ingest_season()` as planned. Per-chunk commits
+> were replaced by a single transaction per import; see [ADR 005](005-celery-job-model.md).

@@ -7,7 +7,7 @@ Base URL: `http://localhost:8317`. Interactive docs at `/docs`, schema at `/open
 | Method | Path | Description |
 | --- | --- | --- |
 | GET | `/health/live` | Process is up. Always `{"status": "ok"}`. |
-| GET | `/health/ready` | Database reachable. 200 `{"status": "ok"}` or 503. |
+| GET | `/health/ready` | 200 `{"status": "ok", "database": "ok", "redis": "ok"}` when the database answers, else 503. Redis is reported (`ok` / `unavailable`) but optional: analytics degrade to uncached. |
 
 ## Seasons
 
@@ -48,6 +48,23 @@ required. Shared filters (all optional):
 | `qtr` | `1`-`5`, repeatable | Quarter (5 = overtime). |
 | `play_type` | `pass`, `run` | Scrimmage play type. |
 | `side` | `offense`, `defense` | Team's plays on offense (default) or allowed on defense. |
+
+### Caching
+
+Both analytics endpoints are cached in Redis for 1 hour, keyed on the season's
+dataset checksum, a per-season generation, and the canonical filters. Imports
+invalidate their season automatically.
+
+- Response header `X-Cache`: `HIT`, `MISS`, `BYPASS`, `DEGRADED` (Redis unreachable,
+  served from PostgreSQL), or `DISABLED` (`CACHE_ENABLED=false`).
+- `?no_cache=true` skips the cache (fresh result, not stored).
+
+`GET /api/v1/cache/stats`:
+
+```json
+{"enabled": true, "available": true, "hits": 30, "misses": 10, "bypass": 1,
+ "invalidations": 2, "hit_rate": 0.75, "degraded_errors_this_process": 0, "ttl_seconds": 3600}
+```
 
 ### Envelope
 
@@ -93,15 +110,102 @@ Rules:
 Scrimmage plays = `play_type` in (pass, run), excluding `no_play`, QB kneels,
 spikes, two-point attempts, and plays nflverse marks as deleted. See `docs/data.md`.
 
+## Jobs
+
+Background season imports. State lives in PostgreSQL; see
+[architecture: job lifecycle](architecture.md#job-lifecycle) for the state machine.
+
+| Method | Path | Description |
+| --- | --- | --- |
+| POST | `/api/v1/jobs/import` | Queue an import. 202 new job, 200 idempotent replay, 409 conflict. |
+| GET | `/api/v1/jobs` | Paginated, newest first. Query: `status`, `page`, `page_size` (max 100). |
+| GET | `/api/v1/jobs/{id}` | One job. 404 if unknown, 422 if `id` is not a UUID. |
+| GET | `/api/v1/jobs/{id}/attempts` | Execution attempts, oldest first. |
+| POST | `/api/v1/jobs/{id}/cancel` | Cancel. 202 with the updated job; 409 `job_finished` if terminal. |
+
+### Submit
+
+```http
+POST /api/v1/jobs/import
+Idempotency-Key: 7c1e0d1a-5b8f-4e0b-9a43-2b7f1c9d0e11
+Content-Type: application/json
+
+{"season": 2024, "force": false}
+```
+
+- `season`: 1999-2100. `force`: re-import even if the file checksum is unchanged.
+- `Idempotency-Key` header (or `idempotency_key` in the body), up to 200 chars.
+  Generate one per user action and reuse it when retrying that request:
+  - same key + same body: **200** with the original job and `Idempotent-Replayed: true`;
+    nothing new is queued.
+  - same key + different body: **409** `idempotency_key_reused`.
+  - no key: each request is new.
+- At most one active (`queued`, `running`, `retrying`, `cancel_requested`) import per
+  season: otherwise **409** `duplicate_job` with `details.existing_job_id`.
+- If the broker is unreachable the job is still accepted (202, `queued`) and published
+  by the reaper once Redis is back.
+
+### Job
+
+```json
+{
+  "id": "bea5165a-dbb5-4879-86da-34da248087f5",
+  "task_type": "import_season",
+  "status": "succeeded",
+  "params": {"season": 2024, "force": true},
+  "user_id": null,
+  "attempt_count": 1,
+  "max_attempts": 4,
+  "timeout_seconds": 900,
+  "result": {"status": "imported", "stored": 43110, "rejected": 0, "games": 285,
+             "row_count": 49492, "seconds": 8.25, "sha256": "3fd2...", "dataset_id": 2},
+  "error": null,
+  "created_at": "2026-10-10T22:46:58Z", "updated_at": "...",
+  "started_at": "...", "finished_at": "...", "heartbeat_at": "...",
+  "next_retry_at": null, "cancel_requested_at": null
+}
+```
+
+`status` is one of `queued`, `running`, `retrying`, `cancel_requested`, `succeeded`,
+`failed`, `cancelled`. `result.status` is `imported` or `skipped_duplicate` (same
+checksum already imported). `user_id` is always `null` until accounts ship (M3).
+
+### Attempt
+
+```json
+{"attempt_number": 1, "status": "failed", "worker": "worker@1ba3a81b761e:12",
+ "error_type": "TransientJobError", "error": "...", "retry_delay_seconds": 1.42,
+ "started_at": "...", "finished_at": "..."}
+```
+
+Attempt `status`: `running`, `succeeded`, `failed`, `cancelled`, or `lost` (the worker
+died without recording an outcome).
+
+### Cancel semantics
+
+- `queued` / `retrying`: becomes `cancelled` immediately.
+- `running`: becomes `cancel_requested`. The worker stops at its next chunk checkpoint
+  (within about a second), rolls the import back, and marks it `cancelled`. If the
+  import finishes first, the job ends `succeeded`.
+- `cancel_requested`: no-op (202).
+- Terminal: 409 `job_finished`.
+
+Poll `GET /jobs/{id}` (the dashboard polls every 1.5s while jobs are active).
+
 ## Errors
 
 ```json
 {"error": {"code": "not_found", "message": "Team 'XYZ' not found", "request_id": "..."}}
 ```
 
+Some errors add a `details` object (for example `existing_job_id` on 409s).
+
 | Status | Code | When |
 | --- | --- | --- |
-| 404 | `not_found` | Unknown team, game, or season with no data. |
+| 404 | `not_found` | Unknown team, game, job, or season with no data. |
+| 409 | `duplicate_job` | An import for that season is already active. |
+| 409 | `idempotency_key_reused` | Idempotency key was used with different parameters. |
+| 409 | `job_finished` | Cancelling a job that already finished. |
 | 422 | `validation_error` | Invalid filter value or missing required parameter. |
 | 500 | `internal_error` | Unhandled error (details logged, not returned). |
 
