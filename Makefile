@@ -3,6 +3,7 @@ COMPOSE ?= docker compose
 TEST_DATABASE_URL ?= postgresql+psycopg://playbookiq:playbookiq@localhost:5434/playbookiq_test
 TEST_REDIS_URL ?= redis://localhost:6381
 WORKERS ?= 1
+FORCE ?= false
 UV ?= uv
 
 .PHONY: help up down logs migrate ingest import-job scale-workers worker-logs reap-jobs \
@@ -27,9 +28,9 @@ migrate: ## Apply database migrations (alembic upgrade head)
 ingest: ## Import seasons synchronously via the CLI, e.g. make ingest SEASONS=2023,2024
 	$(COMPOSE) exec backend python -m app.ingest --seasons $(SEASONS)
 
-import-job: ## Queue a background import job, e.g. make import-job SEASON=2024
+import-job: ## Queue a background import, e.g. make import-job SEASON=2024 [FORCE=true]
 	curl -s -X POST localhost:8317/api/v1/jobs/import -H 'Content-Type: application/json' \
-		-d '{"season": $(SEASON)}'; echo
+		-d '{"season": $(SEASON), "force": $(FORCE)}'; echo
 
 scale-workers: ## Run N worker containers, e.g. make scale-workers WORKERS=4
 	$(COMPOSE) up -d --wait --scale worker=$(WORKERS) worker
