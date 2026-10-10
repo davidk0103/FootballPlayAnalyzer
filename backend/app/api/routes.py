@@ -1,15 +1,24 @@
+import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Query, Response
+from fastapi import APIRouter, Header, Query, Response
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api.deps import FiltersDep, SessionDep
+from app.api.deps import CacheDep, EnqueueDep, FiltersDep, SessionDep
+from app.jobs import service as jobs
+from app.jobs.state import JobStatus
 from app.schemas import (
+    CacheStatsOut,
     ErrorResponse,
     GameDetailOut,
     GamePage,
     HealthOut,
+    ImportJobRequest,
+    JobAttemptOut,
+    JobOut,
+    JobPage,
+    ReadinessOut,
     SeasonOut,
     TeamComparisonResponse,
     TeamOut,
@@ -21,6 +30,13 @@ ERRORS: dict[int | str, dict[str, Any]] = {
     404: {"model": ErrorResponse},
     422: {"model": ErrorResponse},
 }
+CONFLICT: dict[int | str, dict[str, Any]] = {409: {"model": ErrorResponse}}
+CACHE_HEADER = "X-Cache"
+
+NoCache = Annotated[
+    bool,
+    Query(description="Skip the analytics cache and compute fresh (response is not cached)"),
+]
 
 health = APIRouter(prefix="/health", tags=["health"])
 api = APIRouter(prefix="/api/v1", responses=ERRORS)
@@ -31,14 +47,20 @@ def live() -> HealthOut:
     return HealthOut(status="ok")
 
 
-@health.get("/ready", responses={503: {"model": HealthOut}})
-def ready(session: SessionDep, response: Response) -> HealthOut:
+@health.get("/ready", responses={503: {"model": ReadinessOut}})
+def ready(session: SessionDep, cache: CacheDep, response: Response) -> ReadinessOut:
+    """Ready when the database answers. Redis is reported but optional (cache degrades)."""
     try:
         session.execute(text("SELECT 1"))
+        database = "ok"
     except SQLAlchemyError:
+        database = "unavailable"
+    redis_status = "ok" if cache.stats()["available"] else "unavailable"
+    if database != "ok":
         response.status_code = 503
-        return HealthOut(status="unavailable")
-    return HealthOut(status="ok")
+    return ReadinessOut(
+        status="ok" if database == "ok" else "unavailable", database=database, redis=redis_status
+    )
 
 
 @api.get("/seasons", tags=["catalog"])
@@ -57,8 +79,19 @@ def get_team(team_id: str, session: SessionDep) -> TeamOut:
 
 
 @api.get("/teams/{team_id}/stats", tags=["analytics"])
-def team_stats(team_id: str, filters: FiltersDep, session: SessionDep) -> TeamStatsResponse:
-    return team_analytics.team_stats(session, team_id, filters)
+def team_stats(
+    team_id: str,
+    filters: FiltersDep,
+    session: SessionDep,
+    cache: CacheDep,
+    response: Response,
+    no_cache: NoCache = False,
+) -> TeamStatsResponse:
+    result, status = team_analytics.team_stats(
+        session, team_id, filters, cache=cache, bypass_cache=no_cache
+    )
+    response.headers[CACHE_HEADER] = status.value
+    return result
 
 
 @api.get("/games", tags=["catalog"])
@@ -86,5 +119,77 @@ def team_comparison(
     team_b: Annotated[str, Query(description="Team abbreviation or id")],
     filters: FiltersDep,
     session: SessionDep,
+    cache: CacheDep,
+    response: Response,
+    no_cache: NoCache = False,
 ) -> TeamComparisonResponse:
-    return team_analytics.compare_teams(session, team_a, team_b, filters)
+    result, status = team_analytics.compare_teams(
+        session, team_a, team_b, filters, cache=cache, bypass_cache=no_cache
+    )
+    response.headers[CACHE_HEADER] = status.value
+    return result
+
+
+@api.get("/cache/stats", tags=["cache"])
+def cache_stats(cache: CacheDep) -> CacheStatsOut:
+    return CacheStatsOut.model_validate(cache.stats())
+
+
+@api.post("/jobs/import", tags=["jobs"], status_code=202, responses=CONFLICT)
+def submit_import_job(
+    body: ImportJobRequest,
+    session: SessionDep,
+    enqueue: EnqueueDep,
+    response: Response,
+    idempotency_key: Annotated[
+        str | None,
+        Header(
+            alias="Idempotency-Key",
+            min_length=1,
+            max_length=200,
+            description="Retries with the same key return the original job",
+        ),
+    ] = None,
+) -> JobOut:
+    submission = jobs.submit_import(
+        session,
+        season=body.season,
+        force=body.force,
+        idempotency_key=idempotency_key or body.idempotency_key,
+        enqueue=enqueue,
+    )
+    if submission.replayed:
+        response.status_code = 200
+        response.headers["Idempotent-Replayed"] = "true"
+    return JobOut.model_validate(submission.job)
+
+
+@api.get("/jobs", tags=["jobs"])
+def list_jobs(
+    session: SessionDep,
+    status: JobStatus | None = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 25,
+) -> JobPage:
+    items, total = jobs.list_jobs(session, status=status, page=page, page_size=page_size)
+    return JobPage(
+        items=[JobOut.model_validate(j) for j in items],
+        page=page,
+        page_size=page_size,
+        total=total,
+    )
+
+
+@api.get("/jobs/{job_id}", tags=["jobs"])
+def get_job(job_id: uuid.UUID, session: SessionDep) -> JobOut:
+    return JobOut.model_validate(jobs.get_job(session, job_id))
+
+
+@api.get("/jobs/{job_id}/attempts", tags=["jobs"])
+def get_job_attempts(job_id: uuid.UUID, session: SessionDep) -> list[JobAttemptOut]:
+    return [JobAttemptOut.model_validate(a) for a in jobs.list_attempts(session, job_id)]
+
+
+@api.post("/jobs/{job_id}/cancel", tags=["jobs"], status_code=202, responses=CONFLICT)
+def cancel_job(job_id: uuid.UUID, session: SessionDep) -> JobOut:
+    return JobOut.model_validate(jobs.cancel_job(session, job_id))

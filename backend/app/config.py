@@ -17,6 +17,32 @@ class Settings(BaseSettings):
     ingest_chunk_size: int = 5000
     min_sample_warning: int = 30
 
+    # Redis: Celery broker (db 0 by default) and analytics cache (db 1 by default).
+    broker_url: str = "redis://localhost:6379/0"
+    cache_url: str = "redis://localhost:6379/1"
+    # Unacked messages are redelivered after this long (Redis transport). Must exceed the
+    # longest job runtime plus the longest retry countdown, or jobs get delivered twice.
+    broker_visibility_timeout_seconds: int = 3600
+
+    cache_enabled: bool = True
+    cache_ttl_seconds: int = 3600
+    cache_socket_timeout_seconds: float = 0.25
+    # After a Redis error, skip the cache for this long instead of paying the timeout per request.
+    cache_retry_after_seconds: float = 15.0
+
+    job_max_attempts: int = 4
+    job_retry_base_seconds: float = 2.0
+    job_retry_max_seconds: float = 60.0
+    job_timeout_seconds: int = 900
+    job_heartbeat_seconds: float = 5.0
+    # RUNNING jobs without a heartbeat for this long are considered lost by the reaper.
+    job_stale_after_seconds: float = 60.0
+    # QUEUED/RETRYING jobs untouched this long past their due time are re-enqueued by the reaper.
+    job_requeue_after_seconds: float = 120.0
+    reaper_interval_seconds: float = 30.0
+    # Test-only: lets integration tests inject faults via Redis keys. Never enable in production.
+    enable_fault_injection: bool = False
+
 
 @lru_cache
 def get_settings() -> Settings:

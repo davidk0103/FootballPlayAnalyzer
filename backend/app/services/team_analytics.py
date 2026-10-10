@@ -5,6 +5,7 @@ from dataclasses import asdict
 from sqlalchemy.orm import Session
 
 from app.analytics import DEFINITIONS, PlayFilters, apply_filters, compute_team_metrics
+from app.cache import AnalyticsCache, CacheStatus
 from app.config import get_settings
 from app.models import Dataset, Team
 from app.repositories import plays as plays_repo
@@ -49,34 +50,71 @@ def _team_stats(session: Session, team: Team, filters: PlayFilters) -> TeamStats
     )
 
 
-def team_stats(session: Session, team_key: str, filters: PlayFilters) -> TeamStatsResponse:
+def team_stats(
+    session: Session,
+    team_key: str,
+    filters: PlayFilters,
+    *,
+    cache: AnalyticsCache,
+    bypass_cache: bool = False,
+) -> tuple[TeamStatsResponse, CacheStatus]:
     team = require_team(session, team_key)
     dataset = _require_dataset(session, filters.season)
-    stats = _team_stats(session, team, filters)
-    return TeamStatsResponse(
-        **stats.model_dump(),
-        filters=FiltersOut.model_validate(filters.as_dict()),
-        definitions=DEFINITIONS,
-        dataset=_dataset_out(dataset),
+
+    def compute() -> TeamStatsResponse:
+        stats = _team_stats(session, team, filters)
+        return TeamStatsResponse(
+            **stats.model_dump(),
+            filters=FiltersOut.model_validate(filters.as_dict()),
+            definitions=DEFINITIONS,
+            dataset=_dataset_out(dataset),
+        )
+
+    return cache.get_or_compute(
+        namespace="team-stats",
+        season=filters.season,
+        dataset_sha=dataset.sha256,
+        params={"team": team.id, **filters.as_dict()},
+        model=TeamStatsResponse,
+        compute=compute,
+        bypass=bypass_cache,
     )
 
 
 def compare_teams(
-    session: Session, team_a_key: str, team_b_key: str, filters: PlayFilters
-) -> TeamComparisonResponse:
+    session: Session,
+    team_a_key: str,
+    team_b_key: str,
+    filters: PlayFilters,
+    *,
+    cache: AnalyticsCache,
+    bypass_cache: bool = False,
+) -> tuple[TeamComparisonResponse, CacheStatus]:
     team_a = require_team(session, team_a_key)
     team_b = require_team(session, team_b_key)
     if team_a.id == team_b.id:
         raise InvalidRequestError("team_a and team_b must be different teams")
     dataset = _require_dataset(session, filters.season)
-    a = _team_stats(session, team_a, filters)
-    b = _team_stats(session, team_b, filters)
-    warnings = [f"{s.team.abbreviation}: {w}" for s in (a, b) for w in s.warnings]
-    return TeamComparisonResponse(
-        filters=FiltersOut.model_validate(filters.as_dict()),
-        team_a=a,
-        team_b=b,
-        definitions=DEFINITIONS,
-        dataset=_dataset_out(dataset),
-        warnings=warnings,
+
+    def compute() -> TeamComparisonResponse:
+        a = _team_stats(session, team_a, filters)
+        b = _team_stats(session, team_b, filters)
+        warnings = [f"{s.team.abbreviation}: {w}" for s in (a, b) for w in s.warnings]
+        return TeamComparisonResponse(
+            filters=FiltersOut.model_validate(filters.as_dict()),
+            team_a=a,
+            team_b=b,
+            definitions=DEFINITIONS,
+            dataset=_dataset_out(dataset),
+            warnings=warnings,
+        )
+
+    return cache.get_or_compute(
+        namespace="team-comparison",
+        season=filters.season,
+        dataset_sha=dataset.sha256,
+        params={"team_a": team_a.id, "team_b": team_b.id, **filters.as_dict()},
+        model=TeamComparisonResponse,
+        compute=compute,
+        bypass=bypass_cache,
     )

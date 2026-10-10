@@ -1,13 +1,29 @@
+import uuid
 from typing import Annotated
 
 from fastapi import Depends, Query
 from sqlalchemy.orm import Session
 
 from app.analytics.filters import Distance, FieldZone, PlayFilters, PlayType, SeasonType, Side
+from app.cache import AnalyticsCache, get_cache
 from app.db import get_session
+from app.jobs.service import Enqueue
 from app.services.errors import InvalidRequestError
 
 SessionDep = Annotated[Session, Depends(get_session)]
+CacheDep = Annotated[AnalyticsCache, Depends(get_cache)]
+
+
+def get_enqueue() -> Enqueue:
+    from app.jobs.queue import enqueue_import
+
+    def enqueue(job_id: uuid.UUID, timeout_seconds: int) -> str:
+        return enqueue_import(job_id, timeout_seconds=timeout_seconds)
+
+    return enqueue
+
+
+EnqueueDep = Annotated[Enqueue, Depends(get_enqueue)]
 
 
 def play_filters(

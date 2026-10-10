@@ -1,11 +1,13 @@
 """Season ingestion: checksum-idempotent, chunked upserts with quarantine.
 
-Called by the CLI in M1 and by a Celery task in M2.
+Called by the CLI and by the Celery import task. All data for one import is written
+in a single transaction (in chunked statements), so a failure, cancellation, or worker
+crash leaves no partial import behind and a retry starts from a clean slate.
 """
 
 import logging
 import time
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -30,7 +32,12 @@ PLAY_UPDATE_EXCLUDE = {"id", "game_id", "external_play_id"}
 
 
 class IngestError(RuntimeError):
-    pass
+    """An import failed. The original exception is available as ``__cause__``."""
+
+
+# Called with (stage, done, total). May raise to abort the import (e.g. on cancellation);
+# the transaction is rolled back and the exception is chained onto IngestError.
+ProgressCallback = Callable[[str, int, int], None]
 
 
 @dataclass
@@ -197,8 +204,14 @@ def ingest_season(
     chunk_size: int | None = None,
     force: bool = False,
     player_directory: pd.DataFrame | None = None,
+    progress: ProgressCallback | None = None,
 ) -> IngestSummary:
     """Import one season. Skips the file if a completed dataset has the same SHA-256."""
+
+    def report(stage: str, done: int, total: int) -> None:
+        if progress is not None:
+            progress(stage, done, total)
+
     started = time.monotonic()
     settings = get_settings()
     cache = cache_dir or settings.data_cache_dir
@@ -235,15 +248,15 @@ def ingest_season(
         if directory is None and player_ext:
             directory = load_player_directory(cache)
         player_ids = upsert_players(session, player_ext, directory)
-        session.commit()
+        session.flush()
 
         rows = build_play_rows(result, dataset_id, team_ids, game_ids, player_ids)
+        report("plays", 0, len(rows))
         for start in range(0, len(rows), chunk):
             upsert_plays(session, rows[start : start + chunk])
-            session.commit()
-            log.info(
-                "season %s: upserted %s/%s plays", season, min(start + chunk, len(rows)), len(rows)
-            )
+            done = min(start + chunk, len(rows))
+            log.info("season %s: upserted %s/%s plays", season, done, len(rows))
+            report("plays", done, len(rows))
 
         if result.rejected:
             session.execute(

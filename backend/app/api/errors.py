@@ -9,7 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.services.errors import InvalidRequestError, NotFoundError
+from app.services.errors import ConflictError, InvalidRequestError, NotFoundError
 
 log = logging.getLogger(__name__)
 REQUEST_ID_HEADER = "X-Request-ID"
@@ -24,7 +24,7 @@ def error_response(
     status: int,
     code: str,
     message: str,
-    details: list[dict[str, Any]] | None = None,
+    details: list[dict[str, Any]] | dict[str, Any] | None = None,
 ) -> JSONResponse:
     body: dict[str, Any] = {
         "error": {"code": code, "message": message, "request_id": _request_id(request)}
@@ -48,6 +48,10 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(NotFoundError)
     async def not_found(request: Request, exc: NotFoundError) -> JSONResponse:
         return error_response(request, 404, "not_found", str(exc))
+
+    @app.exception_handler(ConflictError)
+    async def conflict(request: Request, exc: ConflictError) -> JSONResponse:
+        return error_response(request, 409, exc.code, str(exc), exc.details)
 
     @app.exception_handler(InvalidRequestError)
     async def invalid(request: Request, exc: InvalidRequestError) -> JSONResponse:

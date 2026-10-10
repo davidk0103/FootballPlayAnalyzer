@@ -1,6 +1,10 @@
-from datetime import date
+import uuid
+from datetime import date, datetime
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
+
+from app.jobs.state import AttemptStatus, JobStatus
 
 
 class TeamOut(BaseModel):
@@ -121,8 +125,79 @@ class ErrorBody(BaseModel):
     code: str
     message: str
     request_id: str | None
-    details: list[dict[str, object]] | None = None
+    details: list[dict[str, object]] | dict[str, object] | None = None
 
 
 class ErrorResponse(BaseModel):
     error: ErrorBody
+
+
+class ImportJobRequest(BaseModel):
+    season: int = Field(ge=1999, le=2100, description="Season to import, e.g. 2024")
+    force: bool = Field(default=False, description="Re-import even if the file checksum matches")
+    idempotency_key: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=200,
+        description="Alternative to the Idempotency-Key header",
+    )
+
+
+class JobOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    task_type: str
+    status: JobStatus
+    params: dict[str, Any]
+    user_id: int | None
+    attempt_count: int
+    max_attempts: int
+    timeout_seconds: int
+    result: dict[str, Any] | None = Field(validation_alias="result_ref")
+    error: str | None
+    created_at: datetime
+    updated_at: datetime
+    started_at: datetime | None
+    finished_at: datetime | None
+    heartbeat_at: datetime | None
+    next_retry_at: datetime | None
+    cancel_requested_at: datetime | None
+
+
+class JobPage(BaseModel):
+    items: list[JobOut]
+    page: int
+    page_size: int
+    total: int
+
+
+class JobAttemptOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    attempt_number: int
+    status: AttemptStatus
+    worker: str | None
+    error_type: str | None
+    error: str | None
+    retry_delay_seconds: float | None
+    started_at: datetime
+    finished_at: datetime | None
+
+
+class CacheStatsOut(BaseModel):
+    enabled: bool
+    available: bool
+    hits: int
+    misses: int
+    bypass: int
+    invalidations: int
+    hit_rate: float | None
+    degraded_errors_this_process: int
+    ttl_seconds: int
+
+
+class ReadinessOut(BaseModel):
+    status: str
+    database: str
+    redis: str

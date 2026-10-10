@@ -4,11 +4,13 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
+import redis
 from alembic.config import Config
 from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.orm import Session
 
 from alembic import command
+from app.cache import get_cache
 from app.config import get_settings
 from app.db import get_engine, get_sessionmaker
 from app.ingest.service import IngestSummary, ingest_season
@@ -19,7 +21,14 @@ TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL",
     "postgresql+psycopg://playbookiq:playbookiq@localhost:5432/playbookiq_test",
 )
+TEST_REDIS_URL = os.environ.get("TEST_REDIS_URL", "redis://localhost:6379").rstrip("/")
+TEST_BROKER_URL = f"{TEST_REDIS_URL}/14"
+TEST_CACHE_URL = f"{TEST_REDIS_URL}/15"
 BACKEND_DIR = Path(__file__).resolve().parents[2]
+
+# Set before anything imports app.worker.celery_app, which reads the broker URL at import.
+os.environ["BROKER_URL"] = TEST_BROKER_URL
+os.environ["CACHE_URL"] = TEST_CACHE_URL
 
 
 @pytest.fixture(scope="session")
@@ -28,6 +37,7 @@ def engine() -> Iterator[Engine]:
     get_settings.cache_clear()
     get_engine.cache_clear()
     get_sessionmaker.cache_clear()
+    get_cache.cache_clear()
 
     cfg = Config(str(BACKEND_DIR / "alembic.ini"))
     cfg.set_main_option("script_location", str(BACKEND_DIR / "alembic"))
@@ -81,3 +91,13 @@ def ingest_fixture(
 def seeded_session(db_session: Session, player_directory: pd.DataFrame) -> Session:
     ingest_fixture(db_session, player_directory)
     return db_session
+
+
+@pytest.fixture(autouse=True)
+def clean_redis() -> Iterator[None]:
+    """Fresh analytics cache (and fault config) for every integration test."""
+    client = redis.Redis.from_url(TEST_CACHE_URL)
+    client.flushdb()
+    get_cache.cache_clear()
+    yield
+    client.flushdb()

@@ -28,7 +28,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Ready */
+        /**
+         * Ready
+         * @description Ready when the database answers. Redis is reported but optional (cache degrades).
+         */
         get: operations["ready_health_ready_get"];
         put?: never;
         post?: never;
@@ -157,10 +160,138 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cache/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cache Stats */
+        get: operations["cache_stats_api_v1_cache_stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit Import Job */
+        post: operations["submit_import_job_api_v1_jobs_import_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Jobs */
+        get: operations["list_jobs_api_v1_jobs_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{job_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Job */
+        get: operations["get_job_api_v1_jobs__job_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{job_id}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Job Attempts */
+        get: operations["get_job_attempts_api_v1_jobs__job_id__attempts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{job_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Job */
+        post: operations["cancel_job_api_v1_jobs__job_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AttemptStatus
+         * @enum {string}
+         */
+        AttemptStatus: "running" | "succeeded" | "failed" | "cancelled" | "lost";
+        /** CacheStatsOut */
+        CacheStatsOut: {
+            /** Enabled */
+            enabled: boolean;
+            /** Available */
+            available: boolean;
+            /** Hits */
+            hits: number;
+            /** Misses */
+            misses: number;
+            /** Bypass */
+            bypass: number;
+            /** Invalidations */
+            invalidations: number;
+            /** Hit Rate */
+            hit_rate: number | null;
+            /** Degraded Errors This Process */
+            degraded_errors_this_process: number;
+            /** Ttl Seconds */
+            ttl_seconds: number;
+        };
         /** DatasetOut */
         DatasetOut: {
             /** Source */
@@ -186,7 +317,9 @@ export interface components {
             /** Details */
             details?: {
                 [key: string]: unknown;
-            }[] | null;
+            }[] | {
+                [key: string]: unknown;
+            } | null;
         };
         /** ErrorResponse */
         ErrorResponse: {
@@ -268,6 +401,111 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** ImportJobRequest */
+        ImportJobRequest: {
+            /**
+             * Season
+             * @description Season to import, e.g. 2024
+             */
+            season: number;
+            /**
+             * Force
+             * @description Re-import even if the file checksum matches
+             * @default false
+             */
+            force: boolean;
+            /**
+             * Idempotency Key
+             * @description Alternative to the Idempotency-Key header
+             */
+            idempotency_key?: string | null;
+        };
+        /** JobAttemptOut */
+        JobAttemptOut: {
+            /** Attempt Number */
+            attempt_number: number;
+            status: components["schemas"]["AttemptStatus"];
+            /** Worker */
+            worker: string | null;
+            /** Error Type */
+            error_type: string | null;
+            /** Error */
+            error: string | null;
+            /** Retry Delay Seconds */
+            retry_delay_seconds: number | null;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /** Finished At */
+            finished_at: string | null;
+        };
+        /** JobOut */
+        JobOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Task Type */
+            task_type: string;
+            status: components["schemas"]["JobStatus"];
+            /** Params */
+            params: {
+                [key: string]: unknown;
+            };
+            /** User Id */
+            user_id: number | null;
+            /** Attempt Count */
+            attempt_count: number;
+            /** Max Attempts */
+            max_attempts: number;
+            /** Timeout Seconds */
+            timeout_seconds: number;
+            /** Result */
+            result: {
+                [key: string]: unknown;
+            } | null;
+            /** Error */
+            error: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Started At */
+            started_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Heartbeat At */
+            heartbeat_at: string | null;
+            /** Next Retry At */
+            next_retry_at: string | null;
+            /** Cancel Requested At */
+            cancel_requested_at: string | null;
+        };
+        /** JobPage */
+        JobPage: {
+            /** Items */
+            items: components["schemas"]["JobOut"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * JobStatus
+         * @enum {string}
+         */
+        JobStatus: "queued" | "running" | "retrying" | "cancel_requested" | "succeeded" | "failed" | "cancelled";
         /** MetricOut */
         MetricOut: {
             /** Value */
@@ -292,6 +530,15 @@ export interface components {
          * @enum {string}
          */
         PlayType: "pass" | "run";
+        /** ReadinessOut */
+        ReadinessOut: {
+            /** Status */
+            status: string;
+            /** Database */
+            database: string;
+            /** Redis */
+            redis: string;
+        };
         /** SampleOut */
         SampleOut: {
             /** Plays */
@@ -423,7 +670,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HealthOut"];
+                    "application/json": components["schemas"]["ReadinessOut"];
                 };
             };
             /** @description Service Unavailable */
@@ -432,7 +679,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HealthOut"];
+                    "application/json": components["schemas"]["ReadinessOut"];
                 };
             };
         };
@@ -556,6 +803,8 @@ export interface operations {
     team_stats_api_v1_teams__team_id__stats_get: {
         parameters: {
             query: {
+                /** @description Skip the analytics cache and compute fresh (response is not cached) */
+                no_cache?: boolean;
                 /** @description Season year, e.g. 2024 */
                 season: number;
                 /** @description Team's plays on offense or allowed on defense */
@@ -702,6 +951,8 @@ export interface operations {
                 team_a: string;
                 /** @description Team abbreviation or id */
                 team_b: string;
+                /** @description Skip the analytics cache and compute fresh (response is not cached) */
+                no_cache?: boolean;
                 /** @description Season year, e.g. 2024 */
                 season: number;
                 /** @description Team's plays on offense or allowed on defense */
@@ -736,6 +987,269 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    cache_stats_api_v1_cache_stats_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CacheStatsOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    submit_import_job_api_v1_jobs_import_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Retries with the same key return the original job */
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportJobRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_jobs_api_v1_jobs_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["JobStatus"] | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobPage"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_job_api_v1_jobs__job_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_job_attempts_api_v1_jobs__job_id__attempts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobAttemptOut"][];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    cancel_job_api_v1_jobs__job_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
