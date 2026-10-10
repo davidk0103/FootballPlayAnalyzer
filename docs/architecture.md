@@ -32,7 +32,7 @@ flowchart LR
 ## Analytics execution
 
 The repository selects only the columns and rows a request needs (one team-season
-is roughly 1.1k offensive scrimmage plays; a full season about 49k raw rows) and
+is about 1,050 regular-season offensive scrimmage plays; a full season about 49.5k raw rows) and
 pandas aggregates them in-process. Milestone 4 benchmarks this against SQL
 `GROUP BY` aggregation so the tradeoff is measured, not guessed
 (see [ADR 002](decisions/002-pandas-analytics-for-m1.md)).

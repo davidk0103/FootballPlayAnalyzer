@@ -19,7 +19,8 @@ and pure pandas functions in `app/analytics/` compute the metrics.
 - Pure functions are trivially unit tested with hand-built DataFrames that have
   known answers, including zero-denominator and NULL-EPA cases.
 - Metric definitions live in one readable place rather than spread across SQL strings.
-- Data volume is small: a team-season is about 1.1k offensive scrimmage plays.
+- Data volume is small: a team-season is about 1,050 regular-season offensive scrimmage
+  plays (measured in `docs/data.md`).
 
 ## Consequences
 
