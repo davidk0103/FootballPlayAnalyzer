@@ -30,4 +30,3 @@ def test_status_class_buckets() -> None:
     assert status_class(200) == "2xx"
     assert status_class(404) == "4xx"
     assert status_class(500) == "5xx"
-

@@ -7,9 +7,9 @@ CSV and analyze it the same way, and save deterministic scouting reports that ex
 CSV, JSON, or a print-friendly page. Every metric shows its numerator, denominator,
 sample size, and definition.
 
-Status: **Milestone 3** (accounts, situational and player explorers, custom CSV uploads,
-saved scouting reports and exports), on top of Milestone 2 (Celery background jobs,
-Redis cache, Jobs dashboard) and Milestone 1 (ingestion, analytics API, compare page).
+Status: **Milestone 4** (structured JSON logs, Prometheus metrics, Grafana dashboards,
+Locust and scripted benchmarks), on top of Milestone 3 (accounts, uploads, reports,
+explorers) and earlier milestones (ingestion, jobs, compare).
 
 | Page | What it does |
 | --- | --- |
@@ -104,6 +104,8 @@ submitted jobs wait in `queued` until a broker and worker are available.
 | `make e2e` | Playwright: compare, jobs, explorers, upload-to-report flow (reuses servers on 8317/5317 or starts them) |
 | `make lint` / `make typecheck` | ruff + oxlint / mypy strict + tsc strict |
 | `make profile` | Re-profile the nflverse files and refresh `docs/data.md` |
+| `make observability` | Prometheus + Grafana (Compose profile `observability`) |
+| `make bench` | Record HTTP/Locust/job benchmarks to `benchmarks/results/` (see `docs/benchmarks.md`) |
 | `make gen-api` | Regenerate `frontend/openapi.json` and the TypeScript API types |
 
 ## Repository layout
@@ -139,6 +141,7 @@ docs/              architecture, data, API, ADRs
 ## Documentation
 
 - [Architecture](docs/architecture.md)
+- [Benchmarks (recorded runs)](docs/benchmarks.md)
 - [Data: source, profiling findings, definitions](docs/data.md)
 - [API](docs/api.md)
 - [Decisions (ADRs)](docs/decisions/)

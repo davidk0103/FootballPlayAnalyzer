@@ -1,0 +1,70 @@
+{
+  "base_url": "http://localhost:8317",
+  "environment": {
+    "captured_at": "2026-10-11T05:32:54.750741+00:00",
+    "cpu_count": 4,
+    "database_url_host": "localhost:5433/playbookiq",
+    "httpx": "0.28.1",
+    "load_avg": [
+      1.357421875,
+      1.24951171875,
+      0.82861328125
+    ],
+    "locust": "2.46.7",
+    "memory_mb": 16014,
+    "platform": "Linux-6.12.94+-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "seasons": [
+      2023
+    ],
+    "sqlalchemy": "2.1.4",
+    "worker_concurrency": "2"
+  },
+  "kind": "worker_scaling",
+  "plays_per_season": {
+    "2023": 43658
+  },
+  "run_id": "20261011T052922Z",
+  "runs": [
+    {
+      "jobs": 1,
+      "jobs_per_minute": 5.416,
+      "per_job_seconds": [
+        11.060883411999384
+      ],
+      "wall_seconds": 11.079,
+      "worker_containers": 1
+    },
+    {
+      "jobs": 1,
+      "jobs_per_minute": 5.969,
+      "per_job_seconds": [
+        10.0342520660015
+      ],
+      "wall_seconds": 10.052,
+      "worker_containers": 2
+    },
+    {
+      "jobs": 1,
+      "jobs_per_minute": 5.43,
+      "per_job_seconds": [
+        11.03438420800012
+      ],
+      "wall_seconds": 11.05,
+      "worker_containers": 4
+    },
+    {
+      "jobs": 1,
+      "jobs_per_minute": 5.429,
+      "per_job_seconds": [
+        11.036069650999707
+      ],
+      "wall_seconds": 11.052,
+      "worker_containers": 8
+    }
+  ],
+  "seasons": [
+    2023
+  ],
+  "worker_concurrency_per_container": 2
+}

@@ -106,7 +106,10 @@ bench-workers: ## Scale workers 1/2/4/8 and measure parallel imports (Docker)
 bench-explain: ## EXPLAIN ANALYZE for analytics queries
 	cd backend && BENCH_RUN_ID=$$(date -u +%Y%m%dT%H%M%SZ) $(UV) run python -m scripts.bench_explain
 
+bench-locust: ## Locust headless load test against localhost:8317
+	cd backend && BENCH_RUN_ID=$$(date -u +%Y%m%dT%H%M%SZ) $(UV) run python -m scripts.bench_locust
+
 bench-plot: ## Render charts from the latest benchmarks/results run
 	cd backend && $(UV) run python -m scripts.bench_plot
 
-bench: bench-explain bench-http bench-jobs bench-plot ## Full local benchmark suite (no worker scaling)
+bench: bench-explain bench-http bench-locust bench-jobs bench-plot ## Local suite (no worker scaling)

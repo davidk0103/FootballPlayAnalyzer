@@ -1,0 +1,53 @@
+{
+  "aggregated": {
+    "100%": "180",
+    "50%": "8",
+    "66%": "9",
+    "75%": "10",
+    "80%": "11",
+    "90%": "15",
+    "95%": "18",
+    "98%": "22",
+    "99%": "28",
+    "99.9%": "89",
+    "99.99%": "180",
+    "Average Content Size": "5191.65435745938",
+    "Average Response Time": "9.305050617820832",
+    "Failure Count": "0",
+    "Failures/s": "0.0",
+    "Max Response Time": "183.11566599732032",
+    "Median Response Time": "8",
+    "Min Response Time": "3.9200620012707077",
+    "Name": "Aggregated",
+    "Request Count": "2708",
+    "Requests/s": "112.75402949960458",
+    "Type": ""
+  },
+  "environment": {
+    "captured_at": "2026-10-11T05:31:49.029803+00:00",
+    "cpu_count": 4,
+    "database_url_host": "localhost:5433/playbookiq",
+    "httpx": "0.28.1",
+    "load_avg": [
+      1.87939453125,
+      1.27685546875,
+      0.80322265625
+    ],
+    "locust": "2.46.7",
+    "memory_mb": 16014,
+    "platform": "Linux-6.12.94+-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "seasons": [
+      2024
+    ],
+    "sqlalchemy": "2.1.4",
+    "worker_concurrency": "2"
+  },
+  "host": "http://localhost:8317",
+  "kind": "locust",
+  "run_id": "20261011T052922Z",
+  "run_time": "25s",
+  "season": 2024,
+  "spawn_rate": 5,
+  "users": 16
+}

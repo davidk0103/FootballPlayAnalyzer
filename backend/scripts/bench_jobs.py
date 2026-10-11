@@ -44,26 +44,21 @@ def run(
     plays_before = play_count(database_url, season)
 
     client = _admin_session(base, admin_email, admin_password)
-    submitted: list[dict[str, Any]] = []
+    durations: list[float] = []
+    waits: list[float] = []
+    outcomes: dict[str, int] = {}
+    engine = create_engine(database_url)
+
     for _ in range(jobs):
         key = str(uuid.uuid4())
-        t0 = time.perf_counter()
+        queued_at = time.perf_counter()
         r = client.post(
             "/api/v1/jobs/import",
             headers={"X-PlaybookIQ-CSRF": "1", "Idempotency-Key": key},
             json={"season": season, "force": force},
         )
         r.raise_for_status()
-        body = r.json()
-        submitted.append({"job_id": body["id"], "queued_at": t0, "status": body["status"]})
-
-    durations: list[float] = []
-    waits: list[float] = []
-    outcomes: dict[str, int] = {}
-    engine = create_engine(database_url)
-
-    for item in submitted:
-        job_id = uuid.UUID(item["job_id"])
+        job_id = uuid.UUID(r.json()["id"])
         started_running: float | None = None
         finished: float | None = None
         while finished is None:
@@ -75,10 +70,10 @@ def run(
             status = row.status
             if status == JobStatus.RUNNING and started_running is None:
                 started_running = time.monotonic()
-                waits.append(started_running - item["queued_at"])
+                waits.append(started_running - queued_at)
             if status in (JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED):
                 finished = time.monotonic()
-                durations.append(finished - item["queued_at"])
+                durations.append(finished - queued_at)
                 outcomes[status.value] = outcomes.get(status.value, 0) + 1
 
     plays_after = play_count(database_url, season)
@@ -117,7 +112,7 @@ def main() -> None:
     parser.add_argument(
         "--password", default=os.environ.get("BENCH_ADMIN_PASSWORD", "e2e-admin-password")
     )
-    parser.add_argument("--force", action="store_true")
+    parser.add_argument("--force", action=argparse.BooleanOptionalAction, default=True)
     args = parser.parse_args()
     run(
         args.base.rstrip("/"),

@@ -14,10 +14,10 @@ QUERIES: dict[str, str] = {
     "plays_by_season": """
         SELECT count(*) FROM plays WHERE season = :season
     """,
-    "team_comparison_frame": """
-        SELECT game_id, play_id, offense, defense, epa, success, down, yards_to_go
+    "plays_season_scan": """
+        SELECT id, season, epa, success, down, yards_to_go, offense_team_id
         FROM plays
-        WHERE season = :season AND offense IN ('KC', 'PHI')
+        WHERE season = :season
         LIMIT 50000
     """,
     "latest_dataset": """

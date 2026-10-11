@@ -315,6 +315,22 @@ definitions, tendency grid, charts). TanStack Query polls uploads, reports, and 
 every 1.5s only while they are processing or pending. Types come from the OpenAPI
 schema (`make gen-api`), and CI fails if they are stale.
 
+## Observability (M4)
+
+- **Logs:** one JSON object per line on stdout/stderr (`app/observability/logging_config.py`).
+  Every HTTP request gets a `request_id` (also returned as `X-Request-ID`); Celery jobs set
+  `job_id` for the duration of `run_job`. Known secret field names and bearer tokens are
+  redacted. Upload file bodies are never logged.
+- **Metrics:** Prometheus exposition at `GET /metrics` when `METRICS_ENABLED=true` (default).
+  HTTP counters/histograms use route templates to limit cardinality. SQLAlchemy statement timing,
+  analytics cache outcomes, job starts/finishes/durations, and queue depth (Postgres + Celery
+  Redis list length refreshed on scrape) are included. See ADR 014.
+- **Dashboards:** `make observability` starts Prometheus (:9090) and Grafana (:3000, default
+  login `admin` / `playbookiq`) with the provisioned **PlaybookIQ API** dashboard under
+  `ops/grafana/`.
+- **Load tests:** Locust (`backend/loadtests/locustfile.py`) and scripted benchmarks
+  (`make bench`, raw JSON under `benchmarks/results/`). Documented in `docs/benchmarks.md`.
+
 ## Repository layout
 
 ```
