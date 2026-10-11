@@ -1,0 +1,203 @@
+{
+  "base_url": "http://localhost:8317",
+  "environment": {
+    "captured_at": "2026-10-11T05:43:39.099802+00:00",
+    "cpu_count": 4,
+    "database_url_host": "localhost:5433/playbookiq",
+    "httpx": "0.28.1",
+    "load_avg": [
+      0.529296875,
+      1.02734375,
+      0.9716796875
+    ],
+    "locust": "2.46.7",
+    "memory_mb": 16014,
+    "platform": "Linux-6.12.94+-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "seasons": [
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2022,
+      2023
+    ],
+    "sqlalchemy": "2.1.4",
+    "worker_concurrency": "2"
+  },
+  "job_timeout_seconds": 900.0,
+  "jobs_per_scale_step": 8,
+  "kind": "worker_scaling_parallel",
+  "plays_per_season_before": {
+    "2016": 41736,
+    "2017": 41442,
+    "2018": 41115,
+    "2019": 41255,
+    "2020": 42085,
+    "2021": 43744,
+    "2022": 43422,
+    "2023": 43658
+  },
+  "run_id": "20261011T054500Z",
+  "runs": [
+    {
+      "jobs_per_minute": 5.422,
+      "jobs_submitted": 8,
+      "mean_per_job_seconds": 48.615,
+      "outcomes": {
+        "succeeded": 8
+      },
+      "peak_concurrent_running": 2,
+      "per_job_total_seconds": {
+        "count": 8,
+        "max": 88.317775,
+        "min": 9.867164,
+        "p50": 53.861824,
+        "p95": 88.317775,
+        "p99": 88.317775
+      },
+      "queue_wait_seconds": {
+        "count": 8,
+        "max": 65.478522,
+        "min": 0.11943,
+        "p50": 31.530883,
+        "p95": 65.478522,
+        "p99": 65.478522
+      },
+      "seasons": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+      ],
+      "submit_mode": "parallel_batch",
+      "wall_seconds": 88.526,
+      "worker_containers": 1,
+      "worker_processes_max": 2
+    },
+    {
+      "jobs_per_minute": 5.188,
+      "jobs_submitted": 8,
+      "mean_per_job_seconds": 50.577,
+      "outcomes": {
+        "succeeded": 8
+      },
+      "peak_concurrent_running": 4,
+      "per_job_total_seconds": {
+        "count": 8,
+        "max": 92.440096,
+        "min": 11.295368,
+        "p50": 55.414491,
+        "p95": 92.440096,
+        "p99": 92.440096
+      },
+      "queue_wait_seconds": {
+        "count": 8,
+        "max": 43.6603,
+        "min": 0.098812,
+        "p50": 11.236935,
+        "p95": 43.6603,
+        "p99": 43.6603
+      },
+      "seasons": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+      ],
+      "submit_mode": "parallel_batch",
+      "wall_seconds": 92.529,
+      "worker_containers": 2,
+      "worker_processes_max": 4
+    },
+    {
+      "jobs_per_minute": 5.518,
+      "jobs_submitted": 8,
+      "mean_per_job_seconds": 48.013,
+      "outcomes": {
+        "succeeded": 8
+      },
+      "peak_concurrent_running": 8,
+      "per_job_total_seconds": {
+        "count": 8,
+        "max": 86.869809,
+        "min": 10.822777,
+        "p50": 52.370856,
+        "p95": 86.869809,
+        "p99": 86.869809
+      },
+      "queue_wait_seconds": {
+        "count": 8,
+        "max": 0.638212,
+        "min": 0.07264,
+        "p50": 0.182567,
+        "p95": 0.638212,
+        "p99": 0.638212
+      },
+      "seasons": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+      ],
+      "submit_mode": "parallel_batch",
+      "wall_seconds": 86.991,
+      "worker_containers": 4,
+      "worker_processes_max": 8
+    },
+    {
+      "jobs_per_minute": 5.392,
+      "jobs_submitted": 8,
+      "mean_per_job_seconds": 50.956,
+      "outcomes": {
+        "succeeded": 8
+      },
+      "peak_concurrent_running": 8,
+      "per_job_total_seconds": {
+        "count": 8,
+        "max": 88.934388,
+        "min": 12.871085,
+        "p50": 56.421,
+        "p95": 88.934388,
+        "p99": 88.934388
+      },
+      "queue_wait_seconds": {
+        "count": 8,
+        "max": 0.656365,
+        "min": 0.044418,
+        "p50": 0.168647,
+        "p95": 0.656365,
+        "p99": 0.656365
+      },
+      "seasons": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+      ],
+      "submit_mode": "parallel_batch",
+      "wall_seconds": 89.019,
+      "worker_containers": 8,
+      "worker_processes_max": 16
+    }
+  ],
+  "worker_concurrency_per_container": 2
+}
