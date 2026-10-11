@@ -9,7 +9,8 @@ export const IDLE_POLL_MS = 10_000
 export function useJobs(status: JobStatus | null) {
   return useQuery({
     queryKey: ['jobs', 'list', status],
-    queryFn: () => api.jobs({ status: status ?? undefined, pageSize: 50 }),
+    queryFn: () =>
+      api.jobs({ status: status ?? undefined, taskType: 'import_season', pageSize: 50 }),
     placeholderData: keepPreviousData,
     refetchInterval: (query) =>
       query.state.data?.items.some(isActiveJob) ? ACTIVE_POLL_MS : IDLE_POLL_MS,

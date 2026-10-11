@@ -2,7 +2,7 @@ from typing import Any
 
 
 class NotFoundError(Exception):
-    """A requested resource does not exist. Mapped to HTTP 404."""
+    """A requested resource does not exist (or is not visible to the caller). HTTP 404."""
 
 
 class InvalidRequestError(Exception):
@@ -16,3 +16,31 @@ class ConflictError(Exception):
         super().__init__(message)
         self.code = code
         self.details = details
+
+
+class UnauthorizedError(Exception):
+    """No valid session. Mapped to HTTP 401."""
+
+    def __init__(self, message: str = "Sign in required", code: str = "unauthorized") -> None:
+        super().__init__(message)
+        self.code = code
+
+
+class ForbiddenError(Exception):
+    """Authenticated but not allowed. Mapped to HTTP 403."""
+
+    def __init__(self, message: str = "Not allowed", code: str = "forbidden") -> None:
+        super().__init__(message)
+        self.code = code
+
+
+class RateLimitedError(Exception):
+    """Too many requests in the current window. Mapped to HTTP 429 with Retry-After."""
+
+    def __init__(self, retry_after_seconds: int) -> None:
+        super().__init__("Too many requests; try again later")
+        self.retry_after_seconds = retry_after_seconds
+
+
+class PayloadTooLargeError(Exception):
+    """Upload exceeds the configured size limit. Mapped to HTTP 413."""

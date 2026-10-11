@@ -16,9 +16,7 @@ from celery import Celery
 from celery.signals import worker_ready
 
 from app.config import get_settings
-
-IMPORT_TASK = "playbookiq.run_import_job"
-REAP_TASK = "playbookiq.reap_stale_jobs"
+from app.jobs.types import REAP_TASK
 
 settings = get_settings()
 

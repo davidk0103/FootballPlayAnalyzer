@@ -6,7 +6,7 @@ from sqlalchemy import func, update
 
 from app.db import get_sessionmaker
 from app.jobs.state import JobStatus
-from app.models import ImportJob
+from app.models import Job
 
 log = logging.getLogger(__name__)
 
@@ -27,10 +27,10 @@ class Heartbeat:
     def beat(self) -> None:
         with get_sessionmaker()() as session:
             session.execute(
-                update(ImportJob)
+                update(Job)
                 .where(
-                    ImportJob.id == self.job_id,
-                    ImportJob.status.in_([JobStatus.RUNNING, JobStatus.CANCEL_REQUESTED]),
+                    Job.id == self.job_id,
+                    Job.status.in_([JobStatus.RUNNING, JobStatus.CANCEL_REQUESTED]),
                 )
                 .values(heartbeat_at=func.now())
             )

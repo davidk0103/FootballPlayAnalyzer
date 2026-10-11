@@ -28,13 +28,13 @@ def _values(e: type[JobStatus] | type[AttemptStatus]) -> list[str]:
     return [m.value for m in e]
 
 
-class ImportJob(Base):
-    __tablename__ = "import_jobs"
+class Job(Base):
+    __tablename__ = "jobs"
     __table_args__ = (
         Index(None, "status", "created_at"),
         # Duplicate-submission protection: at most one active job per (task_type, target).
         Index(
-            "uq_import_jobs_active_target",
+            "uq_jobs_active_target",
             "task_type",
             "target_key",
             unique=True,
@@ -43,10 +43,13 @@ class ImportJob(Base):
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    # Owner. Nullable until auth lands in M3 (no users table yet, so no FK).
-    user_id: Mapped[int | None] = mapped_column(Integer)
+    # Who submitted it. Season imports are public (visible to everyone) but still record
+    # the admin who started them; other task types are private to this user.
+    user_id: Mapped[int | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
     task_type: Mapped[str] = mapped_column(String(50))
-    # What the job acts on (e.g. "season:2024"); scopes duplicate-submission protection.
+    # What the job acts on (e.g. "season:2024", "upload:<uuid>"); scopes duplicate protection.
     target_key: Mapped[str] = mapped_column(String(100))
     params: Mapped[dict[str, Any]] = mapped_column(JSONB)
     status: Mapped[JobStatus] = mapped_column(
@@ -58,6 +61,8 @@ class ImportJob(Base):
     max_attempts: Mapped[int] = mapped_column(SmallInteger)
     timeout_seconds: Mapped[int] = mapped_column(Integer)
     result_ref: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
+    # Latest checkpoint of the running attempt: {"stage": ..., "done": n, "total": n}.
+    progress: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     error: Mapped[str | None] = mapped_column(Text)
     celery_task_id: Mapped[str | None] = mapped_column(String(100))
 
@@ -77,9 +82,7 @@ class JobAttempt(Base):
     __table_args__ = (UniqueConstraint("job_id", "attempt_number"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    job_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("import_jobs.id", ondelete="CASCADE"), index=True
-    )
+    job_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), index=True)
     attempt_number: Mapped[int] = mapped_column(SmallInteger)
     status: Mapped[AttemptStatus] = mapped_column(
         Enum(AttemptStatus, name="attempt_status", values_callable=_values)

@@ -121,6 +121,8 @@ jobs:
           uv sync --frozen
           uv run alembic upgrade head
           uv run python -m app.ingest --seasons 2023
+          PLAYBOOKIQ_ADMIN_PASSWORD=e2e-admin-password \
+            uv run python -m app.auth create-admin --email admin@playbookiq.test
       - name: Start a Celery worker
         working-directory: backend
         run: |

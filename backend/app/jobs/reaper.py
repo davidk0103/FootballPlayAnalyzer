@@ -21,11 +21,11 @@ from app.db import get_engine, get_sessionmaker
 from app.jobs import repository as repo
 from app.jobs.locks import job_lease
 from app.jobs.state import AttemptStatus, JobStatus
-from app.models import ImportJob
+from app.models import Job
 
 log = logging.getLogger(__name__)
 
-Enqueue = Callable[[uuid.UUID, float, int], None]
+Enqueue = Callable[[uuid.UUID, str, float, int], None]
 
 
 @dataclass
@@ -46,10 +46,9 @@ def reap_stale_jobs(
 
     with get_sessionmaker()() as s:
         stale = s.scalars(
-            select(ImportJob.id).where(
-                ImportJob.status.in_([JobStatus.RUNNING, JobStatus.CANCEL_REQUESTED]),
-                func.coalesce(ImportJob.heartbeat_at, ImportJob.started_at, ImportJob.created_at)
-                < stale_before,
+            select(Job.id).where(
+                Job.status.in_([JobStatus.RUNNING, JobStatus.CANCEL_REQUESTED]),
+                func.coalesce(Job.heartbeat_at, Job.started_at, Job.created_at) < stale_before,
             )
         ).all()
     for job_id in stale:
@@ -61,26 +60,24 @@ def reap_stale_jobs(
 
     with get_sessionmaker()() as s:
         overdue = s.execute(
-            select(ImportJob.id, ImportJob.timeout_seconds).where(
+            select(Job.id, Job.task_type, Job.timeout_seconds).where(
                 or_(
+                    and_(Job.status == JobStatus.QUEUED, Job.updated_at < overdue_before),
                     and_(
-                        ImportJob.status == JobStatus.QUEUED, ImportJob.updated_at < overdue_before
-                    ),
-                    and_(
-                        ImportJob.status == JobStatus.RETRYING,
-                        ImportJob.next_retry_at < overdue_before,
+                        Job.status == JobStatus.RETRYING,
+                        Job.next_retry_at < overdue_before,
                     ),
                 )
             )
         ).all()
-        for job_id, timeout in overdue:
+        for job_id, task_type, timeout in overdue:
             s.execute(
-                update(ImportJob)
-                .where(ImportJob.id == job_id)
+                update(Job)
+                .where(Job.id == job_id)
                 .values(updated_at=func.now(), next_retry_at=func.now())
             )
             s.commit()
-            enqueue(job_id, 0, timeout)
+            enqueue(job_id, task_type, 0, timeout)
             report.requeued.append(str(job_id))
 
     if report.lost or report.requeued:
@@ -118,5 +115,5 @@ def _recover_lost(job_id: uuid.UUID, now: datetime, enqueue: Enqueue) -> bool:
         )
         s.commit()
         if moved:
-            enqueue(job_id, 0, job.timeout_seconds)
+            enqueue(job_id, job.task_type, 0, job.timeout_seconds)
         return moved

@@ -5,7 +5,15 @@ from fastapi import APIRouter, Header, Query, Response
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api.deps import CacheDep, EnqueueDep, FiltersDep, SessionDep
+from app.api.deps import (
+    AdminDep,
+    CacheDep,
+    CurrentUserDep,
+    EnqueueDep,
+    FiltersDep,
+    OptionalUserDep,
+    SessionDep,
+)
 from app.jobs import service as jobs
 from app.jobs.state import JobStatus
 from app.schemas import (
@@ -31,6 +39,10 @@ ERRORS: dict[int | str, dict[str, Any]] = {
     422: {"model": ErrorResponse},
 }
 CONFLICT: dict[int | str, dict[str, Any]] = {409: {"model": ErrorResponse}}
+AUTH: dict[int | str, dict[str, Any]] = {
+    401: {"model": ErrorResponse},
+    403: {"model": ErrorResponse},
+}
 CACHE_HEADER = "X-Cache"
 
 NoCache = Annotated[
@@ -135,10 +147,11 @@ def cache_stats(cache: CacheDep) -> CacheStatsOut:
     return CacheStatsOut.model_validate(cache.stats())
 
 
-@api.post("/jobs/import", tags=["jobs"], status_code=202, responses=CONFLICT)
+@api.post("/jobs/import", tags=["jobs"], status_code=202, responses={**CONFLICT, **AUTH})
 def submit_import_job(
     body: ImportJobRequest,
     session: SessionDep,
+    admin: AdminDep,
     enqueue: EnqueueDep,
     response: Response,
     idempotency_key: Annotated[
@@ -157,6 +170,7 @@ def submit_import_job(
         force=body.force,
         idempotency_key=idempotency_key or body.idempotency_key,
         enqueue=enqueue,
+        user=admin,
     )
     if submission.replayed:
         response.status_code = 200
@@ -167,11 +181,16 @@ def submit_import_job(
 @api.get("/jobs", tags=["jobs"])
 def list_jobs(
     session: SessionDep,
+    viewer: OptionalUserDep,
     status: JobStatus | None = None,
+    task_type: Annotated[str | None, Query(max_length=50)] = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> JobPage:
-    items, total = jobs.list_jobs(session, status=status, page=page, page_size=page_size)
+    """Public season imports plus, when signed in, your own private jobs."""
+    items, total = jobs.list_jobs(
+        session, viewer=viewer, status=status, task_type=task_type, page=page, page_size=page_size
+    )
     return JobPage(
         items=[JobOut.model_validate(j) for j in items],
         page=page,
@@ -181,15 +200,17 @@ def list_jobs(
 
 
 @api.get("/jobs/{job_id}", tags=["jobs"])
-def get_job(job_id: uuid.UUID, session: SessionDep) -> JobOut:
-    return JobOut.model_validate(jobs.get_job(session, job_id))
+def get_job(job_id: uuid.UUID, session: SessionDep, viewer: OptionalUserDep) -> JobOut:
+    return JobOut.model_validate(jobs.get_job(session, job_id, viewer))
 
 
 @api.get("/jobs/{job_id}/attempts", tags=["jobs"])
-def get_job_attempts(job_id: uuid.UUID, session: SessionDep) -> list[JobAttemptOut]:
-    return [JobAttemptOut.model_validate(a) for a in jobs.list_attempts(session, job_id)]
+def get_job_attempts(
+    job_id: uuid.UUID, session: SessionDep, viewer: OptionalUserDep
+) -> list[JobAttemptOut]:
+    return [JobAttemptOut.model_validate(a) for a in jobs.list_attempts(session, job_id, viewer)]
 
 
-@api.post("/jobs/{job_id}/cancel", tags=["jobs"], status_code=202, responses=CONFLICT)
-def cancel_job(job_id: uuid.UUID, session: SessionDep) -> JobOut:
-    return JobOut.model_validate(jobs.cancel_job(session, job_id))
+@api.post("/jobs/{job_id}/cancel", tags=["jobs"], status_code=202, responses={**CONFLICT, **AUTH})
+def cancel_job(job_id: uuid.UUID, session: SessionDep, user: CurrentUserDep) -> JobOut:
+    return JobOut.model_validate(jobs.cancel_job(session, job_id, user))

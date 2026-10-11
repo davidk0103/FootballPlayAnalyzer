@@ -1,7 +1,9 @@
 import os
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from pathlib import Path
+from typing import Any
 
+import httpx
 import pandas as pd
 import pytest
 import redis
@@ -10,25 +12,24 @@ from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.orm import Session
 
 from alembic import command
+from app.api.deps import get_enqueue
+from app.auth import service as auth_service
+from app.auth.ratelimit import get_rate_limiter
 from app.cache import get_cache
 from app.config import get_settings
-from app.db import get_engine, get_sessionmaker
+from app.db import get_engine, get_session, get_sessionmaker
 from app.ingest.service import IngestSummary, ingest_season
 from app.ingest.source import SourceFile, sha256_file
+from app.main import create_app
+from app.models import User
 from tests.conftest import PBP_SAMPLE, PLAYERS_SAMPLE
+from tests.integration import TEST_CACHE_URL
 
 TEST_DATABASE_URL = os.environ.get(
     "TEST_DATABASE_URL",
     "postgresql+psycopg://playbookiq:playbookiq@localhost:5432/playbookiq_test",
 )
-TEST_REDIS_URL = os.environ.get("TEST_REDIS_URL", "redis://localhost:6379").rstrip("/")
-TEST_BROKER_URL = f"{TEST_REDIS_URL}/14"
-TEST_CACHE_URL = f"{TEST_REDIS_URL}/15"
 BACKEND_DIR = Path(__file__).resolve().parents[2]
-
-# Set before anything imports app.worker.celery_app, which reads the broker URL at import.
-os.environ["BROKER_URL"] = TEST_BROKER_URL
-os.environ["CACHE_URL"] = TEST_CACHE_URL
 
 
 @pytest.fixture(scope="session")
@@ -93,11 +94,45 @@ def seeded_session(db_session: Session, player_directory: pd.DataFrame) -> Sessi
     return db_session
 
 
+DEPENDENCIES: dict[str, Callable[..., Any]] = {
+    "enqueue": get_enqueue,
+    "cache": get_cache,
+    "limiter": get_rate_limiter,
+}
+CSRF = {"X-PlaybookIQ-CSRF": "1"}
+PASSWORD = "correct-horse-battery"
+
+
+def create_user(session: Session, email: str, *, admin: bool = False) -> User:
+    return auth_service.register(session, email=email, password=PASSWORD, is_admin=admin)
+
+
+async def sign_in(client: httpx.AsyncClient, email: str) -> None:
+    resp = await client.post("/api/v1/auth/login", json={"email": email, "password": PASSWORD})
+    assert resp.status_code == 200, resp.text
+
+
+def api_client(session: Session, **overrides: Callable[..., Any]) -> httpx.AsyncClient:
+    """ASGI client bound to ``session`` that sends the CSRF header by default."""
+    app = create_app()
+
+    def override() -> Iterator[Session]:
+        yield session
+
+    app.dependency_overrides[get_session] = override
+    for dep_name, value in overrides.items():
+        app.dependency_overrides[DEPENDENCIES[dep_name]] = value
+    return httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test", headers=CSRF
+    )
+
+
 @pytest.fixture(autouse=True)
 def clean_redis() -> Iterator[None]:
     """Fresh analytics cache (and fault config) for every integration test."""
     client = redis.Redis.from_url(TEST_CACHE_URL)
     client.flushdb()
     get_cache.cache_clear()
+    get_rate_limiter.cache_clear()
     yield
     client.flushdb()

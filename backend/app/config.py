@@ -1,11 +1,16 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+DEV_JWT_SECRET = "dev-only-insecure-jwt-secret-change-me-0123456789"
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    environment: Literal["development", "test", "production"] = "development"
 
     database_url: str = "postgresql+psycopg://playbookiq:playbookiq@localhost:5432/playbookiq"
     data_cache_dir: Path = Path("data/cache")
@@ -40,8 +45,24 @@ class Settings(BaseSettings):
     # QUEUED/RETRYING jobs untouched this long past their due time are re-enqueued by the reaper.
     job_requeue_after_seconds: float = 120.0
     reaper_interval_seconds: float = 30.0
+    # Auth: JWT in an httpOnly cookie. The default secret is refused outside development/test.
+    jwt_secret: str = DEV_JWT_SECRET
+    jwt_ttl_hours: float = 12.0
+    session_cookie_name: str = "piq_session"
+    cookie_secure: bool = False
+    # Unsafe requests (POST/PUT/PATCH/DELETE) must send this header with value "1".
+    csrf_header_name: str = "X-PlaybookIQ-CSRF"
+    rate_limit_enabled: bool = True
+
     # Test-only: lets integration tests inject faults via Redis keys. Never enable in production.
     enable_fault_injection: bool = False
+
+    def check_secrets(self) -> None:
+        """Refuse to run in production with the development JWT secret or a short one."""
+        if self.environment == "production" and (
+            self.jwt_secret == DEV_JWT_SECRET or len(self.jwt_secret) < 32
+        ):
+            raise RuntimeError("JWT_SECRET must be set to a random value of 32+ characters")
 
 
 @lru_cache

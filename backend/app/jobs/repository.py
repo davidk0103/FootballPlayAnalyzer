@@ -5,11 +5,11 @@ from collections.abc import Iterable
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import CursorResult, func, select, update
+from sqlalchemy import ColumnElement, CursorResult, func, select, update
 from sqlalchemy.orm import Session
 
 from app.jobs.state import ACTIVE, AttemptStatus, JobStatus, check_transition
-from app.models import ImportJob, JobAttempt
+from app.models import Job, JobAttempt
 
 
 def compare_and_set(
@@ -29,40 +29,48 @@ def compare_and_set(
     for source in allowed:
         check_transition(source, target)
     result: CursorResult[Any] = session.execute(  # type: ignore[assignment]
-        update(ImportJob)
-        .where(ImportJob.id == job_id, ImportJob.status.in_(allowed))
+        update(Job)
+        .where(Job.id == job_id, Job.status.in_(allowed))
         .values(status=target, updated_at=func.now(), **values)
     )
     return result.rowcount == 1
 
 
-def get_job(session: Session, job_id: uuid.UUID) -> ImportJob | None:
-    return session.get(ImportJob, job_id, populate_existing=True)
+def get_job(session: Session, job_id: uuid.UUID) -> Job | None:
+    return session.get(Job, job_id, populate_existing=True)
 
 
-def get_by_idempotency_key(session: Session, key: str) -> ImportJob | None:
-    return session.scalar(select(ImportJob).where(ImportJob.idempotency_key == key))
+def get_by_idempotency_key(session: Session, key: str) -> Job | None:
+    return session.scalar(select(Job).where(Job.idempotency_key == key))
 
 
-def get_active_for_target(session: Session, task_type: str, target_key: str) -> ImportJob | None:
+def get_active_for_target(session: Session, task_type: str, target_key: str) -> Job | None:
     return session.scalar(
-        select(ImportJob).where(
-            ImportJob.task_type == task_type,
-            ImportJob.target_key == target_key,
-            ImportJob.status.in_(list(ACTIVE)),
+        select(Job).where(
+            Job.task_type == task_type,
+            Job.target_key == target_key,
+            Job.status.in_(list(ACTIVE)),
         )
     )
 
 
 def list_jobs(
-    session: Session, *, status: JobStatus | None, offset: int, limit: int
-) -> tuple[list[ImportJob], int]:
-    base = select(ImportJob)
+    session: Session,
+    *,
+    visible: ColumnElement[bool],
+    status: JobStatus | None,
+    task_type: str | None,
+    offset: int,
+    limit: int,
+) -> tuple[list[Job], int]:
+    base = select(Job).where(visible)
     if status is not None:
-        base = base.where(ImportJob.status == status)
+        base = base.where(Job.status == status)
+    if task_type is not None:
+        base = base.where(Job.task_type == task_type)
     total = session.scalar(select(func.count()).select_from(base.subquery())) or 0
     rows = session.scalars(
-        base.order_by(ImportJob.created_at.desc(), ImportJob.id).offset(offset).limit(limit)
+        base.order_by(Job.created_at.desc(), Job.id).offset(offset).limit(limit)
     ).all()
     return list(rows), total
 

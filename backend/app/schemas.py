@@ -155,6 +155,7 @@ class JobOut(BaseModel):
     max_attempts: int
     timeout_seconds: int
     result: dict[str, Any] | None = Field(validation_alias="result_ref")
+    progress: dict[str, Any] | None
     error: str | None
     created_at: datetime
     updated_at: datetime
@@ -201,3 +202,17 @@ class ReadinessOut(BaseModel):
     status: str
     database: str
     redis: str
+
+
+class CredentialsIn(BaseModel):
+    email: str = Field(min_length=3, max_length=254, examples=["coach@example.com"])
+    password: str = Field(min_length=1, max_length=128)
+
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: str
+    is_admin: bool
+    created_at: datetime

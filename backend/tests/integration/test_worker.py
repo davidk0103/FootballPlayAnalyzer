@@ -26,14 +26,16 @@ from app.jobs import faults
 from app.jobs.reaper import reap_stale_jobs
 from app.jobs.state import AttemptStatus, JobStatus
 from app.main import create_app
-from app.models import Dataset, DatasetStatus, ImportJob, JobAttempt, Play
+from app.models import Dataset, DatasetStatus, Job, JobAttempt, Play
 from app.worker.tasks import _enqueue
 from tests.conftest import PBP_SAMPLE, PLAYERS_SAMPLE
+from tests.integration import TEST_BROKER_URL, TEST_CACHE_URL
 from tests.integration.conftest import (
     BACKEND_DIR,
-    TEST_BROKER_URL,
-    TEST_CACHE_URL,
+    CSRF,
+    PASSWORD,
     TEST_DATABASE_URL,
+    create_user,
 )
 
 pytestmark = [pytest.mark.integration, pytest.mark.worker]
@@ -144,8 +146,8 @@ def truncate(engine: Engine) -> None:
     with engine.begin() as conn:
         conn.execute(
             text(
-                "TRUNCATE job_attempts, import_jobs, rejected_rows, plays, players, games,"
-                " teams, datasets RESTART IDENTITY CASCADE"
+                "TRUNCATE job_attempts, jobs, api_usage, users, rejected_rows, plays, players,"
+                " games, teams, datasets RESTART IDENTITY CASCADE"
             )
         )
 
@@ -162,13 +164,18 @@ def db(engine: Engine, worker: Worker) -> Iterator[Session]:
 @pytest.fixture
 def api(db: Session) -> Iterator[TestClient]:
     # Real app, session factory, and enqueue: the worker picks up the jobs.
-    with TestClient(create_app()) as c:
+    create_user(db, "admin@example.com", admin=True)
+    with TestClient(create_app(), headers=CSRF) as c:
+        login = c.post(
+            "/api/v1/auth/login", json={"email": "admin@example.com", "password": PASSWORD}
+        )
+        assert login.status_code == 200, login.text
         yield c
 
 
-def job_row(db: Session, job_id: str) -> ImportJob:
+def job_row(db: Session, job_id: str) -> Job:
     db.expire_all()
-    job = db.get(ImportJob, uuid.UUID(job_id))
+    job = db.get(Job, uuid.UUID(job_id))
     assert job is not None
     return job
 
@@ -185,7 +192,7 @@ def attempts(db: Session, job_id: str) -> list[tuple[int, AttemptStatus]]:
 
 def wait_status(
     db: Session, job_id: str, statuses: set[JobStatus], worker: Worker, timeout: float = 30
-) -> ImportJob:
+) -> Job:
     try:
         wait_for(
             lambda: job_row(db, job_id).status in statuses, timeout=timeout, what=str(statuses)
@@ -301,12 +308,12 @@ def test_duplicate_submissions(api: TestClient, db: Session, worker: Worker) -> 
     job_id = first.json()["id"]
     # Publishing the same job twice more (at-least-once) still runs it exactly once.
     job = job_row(db, job_id)
-    _enqueue(job.id, 0, job.timeout_seconds)
-    _enqueue(job.id, 0, job.timeout_seconds)
+    _enqueue(job.id, job.task_type, 0, job.timeout_seconds)
+    _enqueue(job.id, job.task_type, 0, job.timeout_seconds)
     wait_status(db, job_id, {JobStatus.SUCCEEDED}, worker)
     time.sleep(1.5)
     assert attempts(db, job_id) == [(1, AttemptStatus.SUCCEEDED)]
-    assert db.scalar(select(func.count()).select_from(ImportJob)) == 1
+    assert db.scalar(select(func.count()).select_from(Job)) == 1
     assert play_count(db) == FIXTURE_PLAYS
 
 
@@ -356,7 +363,7 @@ def test_whole_worker_killed_then_recovered_by_reaper(
 
 
 def test_reaper_fails_poison_job_whose_worker_always_dies(db: Session, worker: Worker) -> None:
-    job = ImportJob(
+    job = Job(
         id=uuid.uuid4(),
         task_type="import_season",
         target_key=f"season:{SEASON}",
@@ -372,7 +379,7 @@ def test_reaper_fails_poison_job_whose_worker_always_dies(db: Session, worker: W
     db.flush()
     db.add(JobAttempt(job_id=job.id, attempt_number=3, status=AttemptStatus.RUNNING))
     db.execute(
-        text("UPDATE import_jobs SET heartbeat_at = now() - interval '1 hour' WHERE id = :id"),
+        text("UPDATE jobs SET heartbeat_at = now() - interval '1 hour' WHERE id = :id"),
         {"id": job.id},
     )
     db.commit()

@@ -5,6 +5,7 @@ description = "PlaybookIQ API, ingestion CLI, and analytics engine"
 requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.20.0",
+    "argon2-cffi>=23.1",
     "celery[redis]>=5.5",
     "fastapi>=0.143.0",
     "httpx>=0.28.1",
@@ -12,6 +13,8 @@ dependencies = [
     "psycopg[binary]>=3.3.6",
     "pyarrow>=26.0.0",
     "pydantic-settings>=2.15.0",
+    "pyjwt>=2.9",
+    "python-multipart>=0.0.32",
     "redis>=5",
     "sqlalchemy>=2",
     "uvicorn[standard]>=0.54.0",

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { ErrorState } from '@/components/StateViews'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -23,8 +23,11 @@ const ATTEMPT_DOT: Record<JobAttempt['status'], string> = {
 
 export function JobAttempts({ jobId, active, now }: { jobId: string; active: boolean; now: number }) {
   const query = useQuery({
-    queryKey: ['jobs', jobId, 'attempts'],
+    // Keyed on `active` so the final state is fetched once when the job finishes, even if
+    // it finished between two polls.
+    queryKey: ['jobs', jobId, 'attempts', active],
     queryFn: () => api.jobAttempts(jobId),
+    placeholderData: keepPreviousData,
     refetchInterval: active ? 1500 : false,
   })
 

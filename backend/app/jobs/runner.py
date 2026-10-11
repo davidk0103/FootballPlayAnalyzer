@@ -1,4 +1,4 @@
-"""Executes one delivery of an import job. Called by the Celery task.
+"""Executes one delivery of a job (any task type). Called by the Celery tasks.
 
 Delivery is at-least-once, so this function must be safe to run any number of times
 for the same job:
@@ -7,9 +7,9 @@ for the same job:
    duplicate delivery and we drop it.
 2. Re-read the job. Terminal jobs are left alone; a pending cancellation is honored.
 3. Count the attempt (exhausted attempts = poison job -> FAILED), record it, and run
-   the shared ingestion service in one transaction with heartbeat + cancel checkpoints.
+   the task type's handler with heartbeat + cancel/progress checkpoints.
 4. Record the outcome with compare-and-set updates, schedule a retry with backoff for
-   transient errors, and invalidate the analytics cache after a successful import.
+   transient errors, and run the handler's post-success hooks (e.g. cache invalidation).
 """
 
 import logging
@@ -20,23 +20,21 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
-from app.cache import get_cache
 from app.config import get_settings
 from app.db import get_engine, get_sessionmaker
-from app.ingest.service import ingest_season
-from app.jobs import faults
 from app.jobs import repository as repo
-from app.jobs.errors import JobCancelledError, describe, is_transient
+from app.jobs.errors import JobCancelledError, PermanentJobError, describe, is_transient
+from app.jobs.handlers import HANDLERS, Checkpoint
 from app.jobs.heartbeat import Heartbeat
 from app.jobs.locks import job_lease
 from app.jobs.state import TERMINAL, AttemptStatus, JobStatus, backoff_seconds
-from app.models import ImportJob, JobAttempt
+from app.models import Job, JobAttempt
 
 log = logging.getLogger(__name__)
 
-EnqueueRetry = Callable[[uuid.UUID, float, int], None]
+EnqueueRetry = Callable[[uuid.UUID, str, float, int], None]
 
 
 @dataclass(frozen=True)
@@ -53,7 +51,7 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
-def _start_attempt(job_id: uuid.UUID) -> tuple[RunOutcome | None, ImportJob | None, int]:
+def _start_attempt(job_id: uuid.UUID) -> tuple[RunOutcome | None, Job | None, int]:
     """Validate state and open a new attempt. Returns an early outcome if no work is due."""
     with get_sessionmaker()() as s:
         job = repo.get_job(s, job_id)
@@ -101,7 +99,7 @@ def _start_attempt(job_id: uuid.UUID) -> tuple[RunOutcome | None, ImportJob | No
             [JobStatus.QUEUED, JobStatus.RETRYING, JobStatus.RUNNING],
             JobStatus.RUNNING,
             attempt_count=attempt_number,
-            started_at=func.coalesce(ImportJob.started_at, func.now()),
+            started_at=func.coalesce(Job.started_at, func.now()),
             heartbeat_at=func.now(),
             next_retry_at=None,
         )
@@ -120,23 +118,23 @@ def _start_attempt(job_id: uuid.UUID) -> tuple[RunOutcome | None, ImportJob | No
         return None, repo.get_job(s, job_id), attempt_number
 
 
-def _checkpoint(job_id: uuid.UUID, season: int) -> Callable[[str, int, int], None]:
-    chunks = 0
-
+def _checkpoint(job_id: uuid.UUID) -> Checkpoint:
     def check(stage: str, done: int, total: int) -> None:
-        nonlocal chunks
-        if done > 0:
-            chunks += 1
-            faults.on_chunk(season, chunks)
         with get_sessionmaker()() as s:
-            status = s.scalar(select(ImportJob.status).where(ImportJob.id == job_id))
+            status = s.scalar(
+                update(Job)
+                .where(Job.id == job_id)
+                .values(progress={"stage": stage, "done": done, "total": total})
+                .returning(Job.status)
+            )
+            s.commit()
         if status == JobStatus.CANCEL_REQUESTED:
             raise JobCancelledError("cancelled by request")
 
     return check
 
 
-def run_import_job(job_id: uuid.UUID, *, enqueue_retry: EnqueueRetry) -> RunOutcome:
+def run_job(job_id: uuid.UUID, *, enqueue_retry: EnqueueRetry) -> RunOutcome:
     settings = get_settings()
     with job_lease(get_engine(), job_id) as acquired:
         if not acquired:
@@ -147,16 +145,13 @@ def run_import_job(job_id: uuid.UUID, *, enqueue_retry: EnqueueRetry) -> RunOutc
         if early is not None or job is None:
             return early or RunOutcome("missing")
 
-        season = int(job.params["season"])
-        force = bool(job.params.get("force", False))
-        log.info("job %s attempt %s: importing season %s", job_id, attempt_number, season)
+        handler = HANDLERS.get(job.task_type)
+        log.info("job %s attempt %s: %s", job_id, attempt_number, job.task_type)
         try:
+            if handler is None:
+                raise PermanentJobError(f"no handler for task type {job.task_type!r}")
             with Heartbeat(job_id, settings.job_heartbeat_seconds):
-                faults.on_attempt_start(season)
-                with get_sessionmaker()() as work:
-                    summary = ingest_season(
-                        work, season, force=force, progress=_checkpoint(job_id, season)
-                    )
+                outcome = handler(job, _checkpoint(job_id))
         except Exception as exc:
             return _record_failure(job, attempt_number, exc, enqueue_retry)
 
@@ -167,24 +162,28 @@ def run_import_job(job_id: uuid.UUID, *, enqueue_retry: EnqueueRetry) -> RunOutc
                 [JobStatus.RUNNING, JobStatus.CANCEL_REQUESTED],
                 JobStatus.SUCCEEDED,
                 finished_at=_now(),
-                result_ref=summary.as_dict(),
+                result_ref=outcome.result,
                 error=None,
             )
             repo.close_open_attempts(s, job_id, AttemptStatus.SUCCEEDED)
             s.commit()
-        if done and summary.status == "imported":
-            get_cache().invalidate_season(season)
+        if done:
+            for hook in outcome.after_success:
+                try:
+                    hook()
+                except Exception:
+                    log.exception("job %s: post-success hook failed", job_id)
         return RunOutcome("succeeded")
 
 
 def _record_failure(
-    job: ImportJob, attempt_number: int, exc: Exception, enqueue_retry: EnqueueRetry
+    job: Job, attempt_number: int, exc: Exception, enqueue_retry: EnqueueRetry
 ) -> RunOutcome:
     settings = get_settings()
     error_type, message = describe(exc)
     cancelled = isinstance(exc, JobCancelledError) or isinstance(exc.__cause__, JobCancelledError)
     with get_sessionmaker()() as s:
-        status = s.scalar(select(ImportJob.status).where(ImportJob.id == job.id))
+        status = s.scalar(select(Job.status).where(Job.id == job.id))
         if cancelled or status == JobStatus.CANCEL_REQUESTED:
             repo.close_open_attempts(s, job.id, AttemptStatus.CANCELLED, error_type="Cancelled")
             repo.compare_and_set(
@@ -224,7 +223,7 @@ def _record_failure(
                 error_type,
                 delay,
             )
-            enqueue_retry(job.id, delay, job.timeout_seconds)
+            enqueue_retry(job.id, job.task_type, delay, job.timeout_seconds)
             return RunOutcome("retry", retry_in=delay)
 
         reason = (

@@ -6,7 +6,7 @@ WORKERS ?= 1
 FORCE ?= false
 UV ?= uv
 
-.PHONY: help up down logs migrate ingest import-job scale-workers worker-logs reap-jobs \
+.PHONY: help up down logs migrate ingest admin import-job scale-workers worker-logs reap-jobs \
 	profile test test-db test-backend test-frontend e2e lint format typecheck gen-api install
 
 help: ## Show targets
@@ -28,9 +28,19 @@ migrate: ## Apply database migrations (alembic upgrade head)
 ingest: ## Import seasons synchronously via the CLI, e.g. make ingest SEASONS=2023,2024
 	$(COMPOSE) exec backend python -m app.ingest --seasons $(SEASONS)
 
-import-job: ## Queue a background import, e.g. make import-job SEASON=2024 [FORCE=true]
-	curl -s -X POST localhost:8317/api/v1/jobs/import -H 'Content-Type: application/json' \
-		-d '{"season": $(SEASON), "force": $(FORCE)}'; echo
+admin: ## Create (or promote) an admin account, e.g. make admin EMAIL=you@example.com
+	$(COMPOSE) exec backend python -m app.auth create-admin --email $(EMAIL)
+
+import-job: ## Queue an import as an admin: make import-job SEASON=2024 EMAIL=you@example.com
+	@test -n "$(EMAIL)" || { echo "EMAIL is required (an admin account; see make admin)"; exit 1; }
+	@jar=$$(mktemp); trap 'rm -f $$jar' EXIT; \
+	read -rsp "Password for $(EMAIL): " pw; echo; \
+	curl -sf -c $$jar -X POST localhost:8317/api/v1/auth/login -H 'X-PlaybookIQ-CSRF: 1' \
+		-H 'Content-Type: application/json' \
+		-d "{\"email\": \"$(EMAIL)\", \"password\": \"$$pw\"}" > /dev/null \
+		|| { echo "login failed"; exit 1; }; \
+	curl -s -b $$jar -X POST localhost:8317/api/v1/jobs/import -H 'X-PlaybookIQ-CSRF: 1' \
+		-H 'Content-Type: application/json' -d '{"season": $(SEASON), "force": $(FORCE)}'; echo
 
 scale-workers: ## Run N worker containers, e.g. make scale-workers WORKERS=4
 	$(COMPOSE) up -d --wait --scale worker=$(WORKERS) worker

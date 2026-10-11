@@ -6,7 +6,7 @@ import type { Job, JobAttempt } from '@/services/api'
 import attemptsFixture from '@/test/fixtures/job-attempts-2024.json'
 import succeededFixture from '@/test/fixtures/job-succeeded-2024.json'
 import { location, renderWithProviders } from '@/test/render'
-import { server } from '@/test/server'
+import { server, signedInAs, ADMIN } from '@/test/server'
 import { JobsPage } from './JobsPage'
 
 const done = succeededFixture as Job
@@ -34,6 +34,7 @@ function queuedJob(overrides: Partial<Job> = {}): Job {
 }
 
 function useJobsApi(list: () => Job[], attempts: () => JobAttempt[] = () => []) {
+  signedInAs(ADMIN)
   server.use(
     http.get('*/api/v1/jobs', () => HttpResponse.json(page(list()))),
     http.get('*/api/v1/jobs/:id/attempts', () => HttpResponse.json(attempts())),
@@ -195,5 +196,14 @@ describe('JobsPage', () => {
     renderWithProviders(<JobsPage />, { route: '/jobs' })
     expect(await screen.findByText('Could not load jobs')).toBeInTheDocument()
     expect(screen.getByText('Could not reach the PlaybookIQ API.')).toBeInTheDocument()
+  })
+
+  it('hides the import form from visitors who are not administrators', async () => {
+    useJobsApi(() => [done], () => doneAttempts)
+    signedInAs(null)
+    renderWithProviders(<JobsPage />, { route: '/jobs' })
+    expect(await screen.findByText(/only administrators can start them/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Queue import' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'sign in' })).toHaveAttribute('href', '/login?next=%2Fjobs')
   })
 })

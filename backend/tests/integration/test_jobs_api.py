@@ -1,16 +1,16 @@
 """Jobs API and analytics cache behavior against real PostgreSQL + Redis (no worker)."""
 
 import uuid
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import AsyncIterator
 
 import httpx
 import pytest
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_enqueue
 from app.cache import AnalyticsCache, get_cache
-from app.db import get_session
-from app.main import create_app
+from app.jobs.service import submit_job
+from app.jobs.types import IMPORT_UPLOAD
+from tests.integration.conftest import api_client, create_user, sign_in
 
 pytestmark = pytest.mark.integration
 
@@ -22,7 +22,7 @@ class FakeQueue:
         self.published: list[uuid.UUID] = []
         self.fail = False
 
-    def __call__(self, job_id: uuid.UUID, timeout_seconds: int) -> str:
+    def __call__(self, job_id: uuid.UUID, task_type: str, timeout_seconds: int) -> str:
         if self.fail:
             raise ConnectionError("broker down")
         self.published.append(job_id)
@@ -37,21 +37,17 @@ def queue() -> FakeQueue:
 def _app(
     session: Session, queue: FakeQueue, cache: AnalyticsCache | None = None
 ) -> httpx.AsyncClient:
-    app = create_app()
-
-    def override() -> Iterator[Session]:
-        yield session
-
-    app.dependency_overrides[get_session] = override
-    app.dependency_overrides[get_enqueue] = lambda: queue
     if cache is not None:
-        app.dependency_overrides[get_cache] = lambda: cache
-    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test")
+        return api_client(session, enqueue=lambda: queue, cache=lambda: cache)
+    return api_client(session, enqueue=lambda: queue)
 
 
 @pytest.fixture
 async def client(db_session: Session, queue: FakeQueue) -> AsyncIterator[httpx.AsyncClient]:
+    """Signed in as an administrator (season imports are admin-only)."""
+    create_user(db_session, "admin@example.com", admin=True)
     async with _app(db_session, queue) as c:
+        await sign_in(c, "admin@example.com")
         yield c
 
 
@@ -70,7 +66,7 @@ async def test_submit_returns_queued_job_and_publishes(
     assert job["status"] == "queued"
     assert job["params"] == {"season": 2024, "force": False}
     assert job["attempt_count"] == 0
-    assert job["user_id"] is None
+    assert job["user_id"] is not None
     assert queue.published == [uuid.UUID(job["id"])]
 
     fetched = await client.get(f"/api/v1/jobs/{job['id']}")
@@ -211,3 +207,77 @@ async def test_redis_down_serves_uncached(seeded_session: Session, queue: FakeQu
         assert resp.json()["team_a"]["team"]["abbreviation"] == "DET"
         ready = (await c.get("/health/ready")).json()
         assert ready == {"status": "ok", "database": "ok", "redis": "unavailable"}
+
+
+async def test_season_import_requires_admin(db_session: Session, queue: FakeQueue) -> None:
+    create_user(db_session, "fan@example.com")
+    async with _app(db_session, queue) as c:
+        anon = await c.post("/api/v1/jobs/import", json={"season": 2024})
+        assert anon.status_code == 401
+        await sign_in(c, "fan@example.com")
+        fan = await c.post("/api/v1/jobs/import", json={"season": 2024})
+        assert fan.status_code == 403
+        assert fan.json()["error"]["code"] == "admin_required"
+    assert queue.published == []
+
+
+async def test_private_jobs_are_hidden_from_other_users(
+    db_session: Session, queue: FakeQueue
+) -> None:
+    owner = create_user(db_session, "owner@example.com")
+    create_user(db_session, "other@example.com")
+    create_user(db_session, "boss@example.com", admin=True)
+    private = submit_job(
+        db_session,
+        task_type=IMPORT_UPLOAD,
+        target_key="upload:test",
+        params={"upload_id": "test"},
+        user_id=owner.id,
+        idempotency_key=None,
+        enqueue=queue,
+        duplicate_message="dup",
+    ).job
+    url = f"/api/v1/jobs/{private.id}"
+
+    async with _app(db_session, queue) as c:
+        assert (await c.get(url)).status_code == 404
+        assert (await c.get("/api/v1/jobs")).json()["total"] == 0
+
+        await sign_in(c, "other@example.com")
+        assert (await c.get(url)).status_code == 404
+        assert (await c.get(url + "/attempts")).status_code == 404
+        assert (await c.post(url + "/cancel")).status_code == 404
+
+        # Admins see public imports, not other users' private work.
+        await sign_in(c, "boss@example.com")
+        assert (await c.get(url)).status_code == 404
+
+        await sign_in(c, "owner@example.com")
+        assert (await c.get(url)).json()["id"] == str(private.id)
+        listing = (await c.get("/api/v1/jobs?task_type=import_upload")).json()
+        assert [j["id"] for j in listing["items"]] == [str(private.id)]
+        assert (await c.post(url + "/cancel")).json()["status"] == "cancelled"
+
+
+async def test_idempotency_keys_are_scoped_per_user(db_session: Session, queue: FakeQueue) -> None:
+    create_user(db_session, "a@example.com", admin=True)
+    create_user(db_session, "b@example.com", admin=True)
+    headers = {"Idempotency-Key": "same-key"}
+    async with _app(db_session, queue) as c:
+        await sign_in(c, "a@example.com")
+        first = await c.post("/api/v1/jobs/import", json={"season": 2024}, headers=headers)
+        await c.post(f"/api/v1/jobs/{first.json()['id']}/cancel")
+        await sign_in(c, "b@example.com")
+        second = await c.post("/api/v1/jobs/import", json={"season": 2024}, headers=headers)
+    assert second.status_code == 202
+    assert second.json()["id"] != first.json()["id"]
+
+
+async def test_public_jobs_are_readable_without_signing_in(
+    client: httpx.AsyncClient, db_session: Session, queue: FakeQueue
+) -> None:
+    job = (await client.post("/api/v1/jobs/import", json={"season": 2024})).json()
+    async with _app(db_session, queue) as anon:
+        assert (await anon.get(f"/api/v1/jobs/{job['id']}")).status_code == 200
+        assert (await anon.get("/api/v1/jobs")).json()["total"] == 1
+        assert (await anon.post(f"/api/v1/jobs/{job['id']}/cancel")).status_code == 401

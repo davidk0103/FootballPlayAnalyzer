@@ -2,8 +2,10 @@ import { lazy, Suspense } from 'react'
 import { NavLink, Route, Routes } from 'react-router-dom'
 import { EmptyState } from '@/components/StateViews'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { UserMenu } from '@/components/UserMenu'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
+import { AuthPage } from '@/pages/AuthPage'
 import { LandingPage } from '@/pages/LandingPage'
 
 const ComparePage = lazy(() =>
@@ -37,8 +39,9 @@ export function App() {
               Jobs
             </NavLink>
           </nav>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
+            <UserMenu />
           </div>
         </div>
       </header>
@@ -46,6 +49,8 @@ export function App() {
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<AuthPage mode="login" />} />
+          <Route path="/register" element={<AuthPage mode="register" />} />
           <Route
             path="/compare"
             element={

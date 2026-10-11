@@ -1,39 +1,44 @@
 {
-    "id": "bea5165a-dbb5-4879-86da-34da248087f5",
-    "task_type": "import_season",
-    "status": "succeeded",
-    "params": {
-        "force": true,
-        "season": 2024
+  "id": "bea5165a-dbb5-4879-86da-34da248087f5",
+  "task_type": "import_season",
+  "status": "succeeded",
+  "params": {
+    "force": true,
+    "season": 2024
+  },
+  "user_id": null,
+  "attempt_count": 1,
+  "max_attempts": 4,
+  "timeout_seconds": 900,
+  "result": {
+    "games": 285,
+    "season": 2024,
+    "sha256": "3fd2896bc0b911b615142d2f1fabae54a4bbba5ab7b73b28187b118ef8af6a3b",
+    "status": "imported",
+    "stored": 43110,
+    "players": 605,
+    "seconds": 8.25,
+    "skipped": {
+      "no_play": 4936,
+      "null_play_type": 1446
     },
-    "user_id": null,
-    "attempt_count": 1,
-    "max_attempts": 4,
-    "timeout_seconds": 900,
-    "result": {
-        "games": 285,
-        "season": 2024,
-        "sha256": "3fd2896bc0b911b615142d2f1fabae54a4bbba5ab7b73b28187b118ef8af6a3b",
-        "status": "imported",
-        "stored": 43110,
-        "players": 605,
-        "seconds": 8.25,
-        "skipped": {
-            "no_play": 4936,
-            "null_play_type": 1446
-        },
-        "rejected": 0,
-        "row_count": 49492,
-        "dataset_id": 2,
-        "source_version": "2026-10-10 11:17:28 EDT",
-        "stale_plays_removed": 0
-    },
-    "error": null,
-    "created_at": "2026-10-10T22:51:35.764288Z",
-    "updated_at": "2026-10-10T22:51:44.110075Z",
-    "started_at": "2026-10-10T22:51:35.811384Z",
-    "finished_at": "2026-10-10T22:51:44.107889Z",
-    "heartbeat_at": "2026-10-10T22:51:40.828284Z",
-    "next_retry_at": null,
-    "cancel_requested_at": null
+    "rejected": 0,
+    "row_count": 49492,
+    "dataset_id": 2,
+    "source_version": "2026-10-10 11:17:28 EDT",
+    "stale_plays_removed": 0
+  },
+  "error": null,
+  "created_at": "2026-10-10T22:51:35.764288Z",
+  "updated_at": "2026-10-10T22:51:44.110075Z",
+  "started_at": "2026-10-10T22:51:35.811384Z",
+  "finished_at": "2026-10-10T22:51:44.107889Z",
+  "heartbeat_at": "2026-10-10T22:51:40.828284Z",
+  "next_retry_at": null,
+  "cancel_requested_at": null,
+  "progress": {
+    "stage": "plays",
+    "done": 43110,
+    "total": 43110
+  }
 }

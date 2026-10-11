@@ -1,5 +1,5 @@
 import { ChevronDown, CircleSlash, Database, Gauge } from 'lucide-react'
-import { useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { EmptyState, ErrorState } from '@/components/StateViews'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ import {
   jobSummary,
   STATUS_FILTERS,
 } from '@/features/jobs/format'
+import { useCurrentUser } from '@/hooks/useAuth'
 import { useCacheStats, useCancelJob, useJob, useJobs, useNow } from '@/hooks/useJobs'
 import { cn } from '@/lib/utils'
 import { isActiveJob, type Job } from '@/services/api'
@@ -29,6 +30,7 @@ export function JobsPage() {
   const selectedId = params.get('job')
 
   const jobs = useJobs(status)
+  const me = useCurrentUser()
   const anyActive = jobs.data?.items.some(isActiveJob) ?? false
   const now = useNow(anyActive)
 
@@ -63,7 +65,19 @@ export function JobsPage() {
               <CardDescription>Downloads nflverse play-by-play for one season.</CardDescription>
             </CardHeader>
             <CardContent>
-              <ImportJobForm onShowJob={(id) => update({ job: id, status: null })} />
+              {me.data?.is_admin ? (
+                <ImportJobForm onShowJob={(id) => update({ job: id, status: null })} />
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Season imports change the public dataset, so only administrators can start
+                  them. {me.data ? '' : 'Administrators: '}
+                  {!me.data && (
+                    <Link to="/login?next=%2Fjobs" className="font-medium text-foreground underline underline-offset-2">
+                      sign in
+                    </Link>
+                  )}
+                </p>
+              )}
             </CardContent>
           </Card>
           <CacheStatsCard />
@@ -221,8 +235,9 @@ function SelectedJob({ id, now, onClose }: { id: string; now: number; onClose: (
 
 function JobDetail({ job, now }: { job: Job; now: number }) {
   const cancel = useCancelJob()
+  const me = useCurrentUser()
   const active = isActiveJob(job)
-  const canCancel = active && job.status !== 'cancel_requested'
+  const canCancel = active && job.status !== 'cancel_requested' && me.data?.is_admin === true
   const facts: [string, string][] = [
     ['Job ID', job.id],
     ['Attempts', `${job.attempt_count} of ${job.max_attempts}`],

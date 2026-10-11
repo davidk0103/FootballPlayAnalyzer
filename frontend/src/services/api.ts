@@ -12,6 +12,7 @@ export type JobStatus = Job['status']
 export type JobPage = components['schemas']['JobPage']
 export type JobAttempt = components['schemas']['JobAttemptOut']
 export type CacheStats = components['schemas']['CacheStatsOut']
+export type User = components['schemas']['UserOut']
 type ErrorBody = components['schemas']['ErrorBody']
 
 const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? ''
@@ -54,8 +55,12 @@ export function buildQuery(params: Record<string, QueryValue>): string {
   return text ? `?${text}` : ''
 }
 
+// Unsafe requests must carry this header (the API rejects them otherwise). Browsers
+// cannot add custom headers to cross-site form posts, which is what blocks CSRF.
+export const CSRF_HEADER = 'X-PlaybookIQ-CSRF'
+
 interface RequestOptions {
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'DELETE'
   params?: Record<string, QueryValue>
   body?: unknown
   headers?: Record<string, string>
@@ -67,12 +72,17 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   try {
     response = await fetch(`${BASE_URL}${path}${buildQuery(params)}`, {
       method,
+      credentials: 'same-origin',
       headers: {
         Accept: 'application/json',
-        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...(method === 'GET' ? {} : { [CSRF_HEADER]: '1' }),
+        ...(body === undefined || body instanceof FormData
+          ? {}
+          : { 'Content-Type': 'application/json' }),
         ...headers,
       },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      body:
+        body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
     })
   } catch {
     throw new ApiError(0, 'network_error', 'Could not reach the PlaybookIQ API.', null)
@@ -92,6 +102,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
       error.details ?? null,
     )
   }
+  if (response.status === 204) return undefined as T
   return (await response.json()) as T
 }
 
@@ -145,8 +156,13 @@ export const api = {
       qtr: q.qtr,
       play_type: q.playType,
     }),
-  jobs: (q: { status?: JobStatus; page?: number; pageSize?: number } = {}) =>
-    getJson<JobPage>('/api/v1/jobs', { status: q.status, page: q.page, page_size: q.pageSize }),
+  jobs: (q: { status?: JobStatus; taskType?: string; page?: number; pageSize?: number } = {}) =>
+    getJson<JobPage>('/api/v1/jobs', {
+      status: q.status,
+      task_type: q.taskType,
+      page: q.page,
+      page_size: q.pageSize,
+    }),
   job: (id: string) => getJson<Job>(`/api/v1/jobs/${id}`),
   jobAttempts: (id: string) => getJson<JobAttempt[]>(`/api/v1/jobs/${id}/attempts`),
   submitImport: (input: ImportJobInput) =>
@@ -157,4 +173,16 @@ export const api = {
     }),
   cancelJob: (id: string) => request<Job>(`/api/v1/jobs/${id}/cancel`, { method: 'POST' }),
   cacheStats: () => getJson<CacheStats>('/api/v1/cache/stats'),
+
+  me: () => getJson<User>('/api/v1/auth/me'),
+  login: (body: Credentials) => request<User>('/api/v1/auth/login', { method: 'POST', body }),
+  register: (body: Credentials) =>
+    request<User>('/api/v1/auth/register', { method: 'POST', body }),
+  logout: () => request<void>('/api/v1/auth/logout', { method: 'POST' }),
+  logoutAll: () => request<void>('/api/v1/auth/logout-all', { method: 'POST' }),
+}
+
+export interface Credentials {
+  email: string
+  password: string
 }

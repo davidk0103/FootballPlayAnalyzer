@@ -9,7 +9,15 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.services.errors import ConflictError, InvalidRequestError, NotFoundError
+from app.services.errors import (
+    ConflictError,
+    ForbiddenError,
+    InvalidRequestError,
+    NotFoundError,
+    PayloadTooLargeError,
+    RateLimitedError,
+    UnauthorizedError,
+)
 
 log = logging.getLogger(__name__)
 REQUEST_ID_HEADER = "X-Request-ID"
@@ -44,6 +52,28 @@ async def request_id_middleware(
     return response
 
 
+SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS"})
+
+
+async def csrf_middleware(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    """Require a custom header on unsafe API requests.
+
+    Browsers cannot attach custom headers to cross-site form posts, and a cross-origin
+    ``fetch`` that adds one triggers a CORS preflight that our allowlist rejects. Combined
+    with the SameSite=Lax cookie this blocks CSRF without server-side token state.
+    """
+    if request.method not in SAFE_METHODS and request.url.path.startswith("/api/"):
+        from app.config import get_settings
+
+        if request.headers.get(get_settings().csrf_header_name) != "1":
+            return error_response(
+                request, 403, "csrf_failed", "Missing or invalid CSRF header on unsafe request"
+            )
+    return await call_next(request)
+
+
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(NotFoundError)
     async def not_found(request: Request, exc: NotFoundError) -> JSONResponse:
@@ -52,6 +82,24 @@ def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(ConflictError)
     async def conflict(request: Request, exc: ConflictError) -> JSONResponse:
         return error_response(request, 409, exc.code, str(exc), exc.details)
+
+    @app.exception_handler(UnauthorizedError)
+    async def unauthorized(request: Request, exc: UnauthorizedError) -> JSONResponse:
+        return error_response(request, 401, exc.code, str(exc))
+
+    @app.exception_handler(ForbiddenError)
+    async def forbidden(request: Request, exc: ForbiddenError) -> JSONResponse:
+        return error_response(request, 403, exc.code, str(exc))
+
+    @app.exception_handler(RateLimitedError)
+    async def rate_limited(request: Request, exc: RateLimitedError) -> JSONResponse:
+        resp = error_response(request, 429, "rate_limited", str(exc))
+        resp.headers["Retry-After"] = str(exc.retry_after_seconds)
+        return resp
+
+    @app.exception_handler(PayloadTooLargeError)
+    async def too_large(request: Request, exc: PayloadTooLargeError) -> JSONResponse:
+        return error_response(request, 413, "payload_too_large", str(exc))
 
     @app.exception_handler(InvalidRequestError)
     async def invalid(request: Request, exc: InvalidRequestError) -> JSONResponse:
