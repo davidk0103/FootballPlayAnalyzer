@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.analytics_routes import router as analytics_router
@@ -8,10 +8,14 @@ from app.api.report_routes import router as report_router
 from app.api.routes import api, health
 from app.api.upload_routes import router as upload_router
 from app.config import get_settings
+from app.db import get_sessionmaker
+from app.observability import configure_logging
+from app.observability.metrics import metrics_payload, prometheus_middleware, refresh_queue_gauges
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    configure_logging(settings.log_level)
     settings.check_secrets()
     app = FastAPI(
         title="PlaybookIQ API",
@@ -34,7 +38,17 @@ def create_app() -> FastAPI:
         expose_headers=["X-Request-ID", "X-Cache", "Retry-After", "Content-Disposition"],
     )
     app.middleware("http")(request_id_middleware)
+    app.middleware("http")(prometheus_middleware)
     install_error_handlers(app)
+
+    if settings.metrics_enabled:
+
+        @app.get("/metrics", include_in_schema=False)
+        def prometheus_metrics() -> Response:
+            refresh_queue_gauges(get_sessionmaker, settings.broker_url)
+            body, content_type = metrics_payload()
+            return Response(content=body, media_type=content_type)
+
     app.include_router(health)
     app.include_router(auth_router)
     app.include_router(api)

@@ -15,6 +15,7 @@ dependencies = [
     "pydantic-settings>=2.15.0",
     "pyjwt>=2.9",
     "python-multipart>=0.0.32",
+    "prometheus-client>=0.21",
     "redis>=5",
     "sqlalchemy>=2",
     "uvicorn[standard]>=0.54.0",
@@ -22,6 +23,8 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "locust>=2.32",
+    "matplotlib>=3.9",
     "celery-types>=0.26.0",
     "mypy>=2.4.0",
     "pandas-stubs>=3.0.5.260914",

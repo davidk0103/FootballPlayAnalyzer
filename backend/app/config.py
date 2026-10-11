@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     environment: Literal["development", "test", "production"] = "development"
+    log_level: str = "INFO"
+    metrics_enabled: bool = True
 
     database_url: str = "postgresql+psycopg://playbookiq:playbookiq@localhost:5432/playbookiq"
     data_cache_dir: Path = Path("data/cache")

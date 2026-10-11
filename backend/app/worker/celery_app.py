@@ -13,10 +13,11 @@ Reliability settings (see docs/decisions/005-celery-job-model.md):
 """
 
 from celery import Celery
-from celery.signals import worker_ready
+from celery.signals import worker_process_init, worker_ready
 
 from app.config import get_settings
 from app.jobs.types import REAP_TASK
+from app.observability import configure_logging
 
 settings = get_settings()
 
@@ -35,6 +36,11 @@ celery_app.conf.update(
         "reap-stale-jobs": {"task": REAP_TASK, "schedule": settings.reaper_interval_seconds},
     },
 )
+
+
+@worker_process_init.connect
+def _configure_worker_logging(**_: object) -> None:
+    configure_logging(get_settings().log_level)
 
 
 @worker_ready.connect

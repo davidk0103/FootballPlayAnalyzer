@@ -22,6 +22,7 @@ import redis
 from pydantic import BaseModel
 
 from app.config import get_settings
+from app.observability.metrics import record_cache_result
 
 log = logging.getLogger(__name__)
 
@@ -104,18 +105,22 @@ class AnalyticsCache:
         bypass: bool = False,
     ) -> tuple[T, CacheStatus]:
         if not self.enabled:
+            record_cache_result("disabled")
             return compute(), CacheStatus.DISABLED
         if bypass:
             if self._available():
                 self._incr("bypass")
+            record_cache_result("bypass")
             return compute(), CacheStatus.BYPASS
         if not self._available():
+            record_cache_result("degraded")
             return compute(), CacheStatus.DEGRADED
         try:
             key = cache_key(namespace, season, dataset_sha, self.generation(season), params)
             raw = cast(bytes | None, self._client.get(key))
         except redis.RedisError as exc:
             self._mark_down(exc)
+            record_cache_result("degraded")
             return compute(), CacheStatus.DEGRADED
         if raw is not None:
             try:
@@ -124,6 +129,7 @@ class AnalyticsCache:
                 log.warning("discarding unreadable cache entry %s", key)
             else:
                 self._incr("hits")
+                record_cache_result("hit")
                 return value, CacheStatus.HIT
 
         value = compute()
@@ -132,7 +138,9 @@ class AnalyticsCache:
             self._client.hincrby(STATS_KEY, "misses", 1)
         except redis.RedisError as exc:
             self._mark_down(exc)
+            record_cache_result("degraded")
             return value, CacheStatus.DEGRADED
+        record_cache_result("miss")
         return value, CacheStatus.MISS
 
     def invalidate_season(self, season: int) -> bool:

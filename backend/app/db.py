@@ -9,7 +9,11 @@ from app.config import get_settings
 
 @lru_cache
 def get_engine() -> Engine:
-    return create_engine(get_settings().database_url, pool_pre_ping=True)
+    from app.observability.db_metrics import install_db_metrics
+
+    engine = create_engine(get_settings().database_url, pool_pre_ping=True)
+    install_db_metrics(engine)
+    return engine
 
 
 @lru_cache

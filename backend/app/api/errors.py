@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.observability.context import bind_request_id
 from app.services.errors import (
     ConflictError,
     ForbiddenError,
@@ -47,6 +48,7 @@ async def request_id_middleware(
     request: Request, call_next: Callable[[Request], Awaitable[Response]]
 ) -> Response:
     request.state.request_id = request.headers.get(REQUEST_ID_HEADER) or uuid.uuid4().hex
+    bind_request_id(request.state.request_id)
     response = await call_next(request)
     response.headers[REQUEST_ID_HEADER] = request.state.request_id
     return response

@@ -7,7 +7,8 @@ FORCE ?= false
 UV ?= uv
 
 .PHONY: help up down logs migrate ingest admin import-job scale-workers worker-logs reap-jobs \
-	profile test test-db test-backend test-frontend e2e lint format typecheck gen-api install
+	observability profile test test-db test-backend test-frontend e2e lint format typecheck gen-api install \
+	bench-http bench-jobs bench-workers bench-explain bench-plot bench
 
 help: ## Show targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-15s %s\n", $$1, $$2}'
@@ -51,6 +52,9 @@ worker-logs: ## Tail worker and beat logs
 reap-jobs: ## Run the stale-job reaper once, now
 	$(COMPOSE) exec worker python -c "from app.worker.tasks import reap_stale_jobs_task as t; print(t())"
 
+observability: ## Start Prometheus and Grafana (compose profile observability)
+	$(COMPOSE) --profile observability up -d --wait prometheus grafana
+
 # --- Local development (no Docker) ------------------------------------------
 install: ## Install backend and frontend dependencies locally
 	cd backend && $(UV) sync
@@ -88,3 +92,21 @@ format: ## Auto-format backend code
 typecheck: ## mypy (strict) + tsc (strict)
 	cd backend && $(UV) run mypy app scripts tests
 	cd frontend && npm run typecheck
+
+# --- Benchmarks (record real numbers; see docs/benchmarks.md) ---------------
+bench-http: ## HTTP RPS/latency against localhost:8317
+	cd backend && BENCH_RUN_ID=$$(date -u +%Y%m%dT%H%M%SZ) $(UV) run python -m scripts.bench_http
+
+bench-jobs: ## Queue admin import jobs and measure throughput
+	cd backend && BENCH_RUN_ID=$$(date -u +%Y%m%dT%H%M%SZ) $(UV) run python -m scripts.bench_jobs
+
+bench-workers: ## Scale workers 1/2/4/8 and measure parallel imports (Docker)
+	cd backend && BENCH_RUN_ID=$$(date -u +%Y%m%dT%H%M%SZ) $(UV) run python -m scripts.bench_workers
+
+bench-explain: ## EXPLAIN ANALYZE for analytics queries
+	cd backend && BENCH_RUN_ID=$$(date -u +%Y%m%dT%H%M%SZ) $(UV) run python -m scripts.bench_explain
+
+bench-plot: ## Render charts from the latest benchmarks/results run
+	cd backend && $(UV) run python -m scripts.bench_plot
+
+bench: bench-explain bench-http bench-jobs bench-plot ## Full local benchmark suite (no worker scaling)

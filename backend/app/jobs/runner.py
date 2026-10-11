@@ -15,6 +15,7 @@ for the same job:
 import logging
 import os
 import socket
+import time
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -31,6 +32,8 @@ from app.jobs.heartbeat import Heartbeat
 from app.jobs.locks import job_lease
 from app.jobs.state import TERMINAL, AttemptStatus, JobStatus, backoff_seconds
 from app.models import Job, JobAttempt
+from app.observability.context import bind_job_id, clear_job_id
+from app.observability.metrics import JOB_DURATION, JOBS_FINISHED, JOBS_STARTED
 
 log = logging.getLogger(__name__)
 
@@ -134,7 +137,21 @@ def _checkpoint(job_id: uuid.UUID) -> Checkpoint:
     return check
 
 
+def _record_job(task_type: str, outcome: str, started: float) -> None:
+    JOBS_FINISHED.labels(task_type=task_type, outcome=outcome).inc()
+    JOB_DURATION.labels(task_type=task_type).observe(time.perf_counter() - started)
+
+
 def run_job(job_id: uuid.UUID, *, enqueue_retry: EnqueueRetry) -> RunOutcome:
+    bind_job_id(str(job_id))
+    started = time.perf_counter()
+    try:
+        return _run_job_inner(job_id, enqueue_retry=enqueue_retry, started=started)
+    finally:
+        clear_job_id()
+
+
+def _run_job_inner(job_id: uuid.UUID, *, enqueue_retry: EnqueueRetry, started: float) -> RunOutcome:
     settings = get_settings()
     with job_lease(get_engine(), job_id) as acquired:
         if not acquired:
@@ -146,6 +163,7 @@ def run_job(job_id: uuid.UUID, *, enqueue_retry: EnqueueRetry) -> RunOutcome:
             return early or RunOutcome("missing")
 
         handler = HANDLERS.get(job.task_type)
+        JOBS_STARTED.labels(task_type=job.task_type).inc()
         log.info("job %s attempt %s: %s", job_id, attempt_number, job.task_type)
         try:
             if handler is None:
@@ -153,7 +171,7 @@ def run_job(job_id: uuid.UUID, *, enqueue_retry: EnqueueRetry) -> RunOutcome:
             with Heartbeat(job_id, settings.job_heartbeat_seconds):
                 outcome = handler(job, _checkpoint(job_id))
         except Exception as exc:
-            return _record_failure(job, attempt_number, exc, enqueue_retry)
+            return _record_failure(job, attempt_number, exc, enqueue_retry, started=started)
 
         with get_sessionmaker()() as s:
             done = repo.compare_and_set(
@@ -173,11 +191,12 @@ def run_job(job_id: uuid.UUID, *, enqueue_retry: EnqueueRetry) -> RunOutcome:
                     hook()
                 except Exception:
                     log.exception("job %s: post-success hook failed", job_id)
+        _record_job(job.task_type, "succeeded", started)
         return RunOutcome("succeeded")
 
 
 def _record_failure(
-    job: Job, attempt_number: int, exc: Exception, enqueue_retry: EnqueueRetry
+    job: Job, attempt_number: int, exc: Exception, enqueue_retry: EnqueueRetry, *, started: float
 ) -> RunOutcome:
     settings = get_settings()
     error_type, message = describe(exc)
@@ -191,6 +210,7 @@ def _record_failure(
             )
             s.commit()
             log.info("job %s cancelled during attempt %s", job.id, attempt_number)
+            _record_job(job.task_type, "cancelled", started)
             return RunOutcome("cancelled")
 
         if is_transient(exc) and attempt_number < job.max_attempts:
@@ -224,6 +244,7 @@ def _record_failure(
                 delay,
             )
             enqueue_retry(job.id, job.task_type, delay, job.timeout_seconds)
+            _record_job(job.task_type, "retry", started)
             return RunOutcome("retry", retry_in=delay)
 
         reason = (
@@ -237,4 +258,5 @@ def _record_failure(
         )
         s.commit()
         log.error("job %s failed permanently: %s", job.id, reason)
+        _record_job(job.task_type, "failed", started)
         return RunOutcome("failed")
