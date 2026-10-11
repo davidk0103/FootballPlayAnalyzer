@@ -1,6 +1,5 @@
 import { ArrowLeftRight, Database, TriangleAlert, Users } from 'lucide-react'
 import { lazy, Suspense, useEffect, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { EmptyState, ErrorState } from '@/components/StateViews'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -22,6 +21,7 @@ import { SeasonSelect } from '@/features/compare/SeasonSelect'
 import { TeamSelect } from '@/features/compare/TeamSelect'
 import { useSeasons, useTeams } from '@/hooks/useCatalog'
 import { useTeamComparison } from '@/hooks/useTeamComparison'
+import { useUrlParams } from '@/hooks/useUrlParams'
 import type { TeamComparison } from '@/services/api'
 
 const ComparisonBarChart = lazy(() =>
@@ -112,21 +112,24 @@ function Results({ data, side }: { data: TeamComparison; side: 'offense' | 'defe
 }
 
 export function ComparePage() {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useUrlParams()
   const state = useMemo(() => parseCompareParams(searchParams), [searchParams])
   const teams = useTeams()
   const seasons = useSeasons()
 
   const update = (patch: Partial<CompareState>) => {
-    setSearchParams(toSearchParams({ ...state, ...patch }), { replace: true })
+    setSearchParams((prev) => toSearchParams({ ...parseCompareParams(prev), ...patch }))
   }
 
   const latestSeason = seasons.data?.[0]?.season ?? null
   useEffect(() => {
     if (state.season === null && latestSeason !== null) {
-      setSearchParams(toSearchParams({ ...state, season: latestSeason }), { replace: true })
+      setSearchParams((prev) => {
+        const current = parseCompareParams(prev)
+        return toSearchParams({ ...current, season: current.season ?? latestSeason })
+      })
     }
-  }, [state, latestSeason, setSearchParams])
+  }, [state.season, latestSeason, setSearchParams])
 
   const query = toComparisonQuery(state)
   const comparison = useTeamComparison(query)

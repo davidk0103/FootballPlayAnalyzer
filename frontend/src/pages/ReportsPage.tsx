@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { FileText, Plus } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { EmptyState, ErrorState } from '@/components/StateViews'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -23,12 +23,13 @@ import {
 } from '@/features/reports/form'
 import { ReportStatusBadge } from '@/features/reports/ReportStatusBadge'
 import { useCreateReport, useReports } from '@/hooks/useReports'
+import { useUrlParams } from '@/hooks/useUrlParams'
 
 function CreateReportForm({ onCancel }: { onCancel: () => void }) {
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useUrlParams()
   const scope = useMemo(() => parseScope(params), [params])
   const setScope = useCallback(
-    (next: Scope) => setParams((p) => writeScope(p, next), { replace: true }),
+    (next: Scope) => setParams((p) => writeScope(p, next)),
     [setParams],
   )
   const form = useForm<ReportFormInput, unknown, ReportFormValues>({
@@ -159,7 +160,7 @@ function ReportList() {
 }
 
 export function ReportsPage() {
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useUrlParams()
   const [open, setOpen] = useState(params.get('new') === '1')
   return (
     <div className="flex flex-col gap-6">
@@ -178,7 +179,7 @@ export function ReportsPage() {
         <CreateReportForm
           onCancel={() => {
             setOpen(false)
-            setParams(new URLSearchParams(), { replace: true })
+            setParams(new URLSearchParams())
           }}
         />
       )}

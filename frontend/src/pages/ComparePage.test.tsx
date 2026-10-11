@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { delay, http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
@@ -29,6 +29,17 @@ describe('ComparePage', () => {
     expect(screen.getByText('1,223 plays · 20 games')).toBeInTheDocument()
     expect(screen.getByText('How these are calculated')).toBeInTheDocument()
     expect(location.current).toBe(KC_PHI)
+  })
+
+  it('keeps both picks when they happen before a re-render', async () => {
+    renderWithProviders(<ComparePage />, { route: '/compare?season=2024' })
+    const teamA = await screen.findByLabelText('Team A')
+    await within(teamA).findByRole('option', { name: /Kansas City Chiefs/ })
+    act(() => {
+      fireEvent.change(teamA, { target: { value: 'KC' } })
+      fireEvent.change(screen.getByLabelText('Team B'), { target: { value: 'PHI' } })
+    })
+    await waitFor(() => expect(location.current).toBe(KC_PHI))
   })
 
   it('disables picking the same team on both sides', async () => {

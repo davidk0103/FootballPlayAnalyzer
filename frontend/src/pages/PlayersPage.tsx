@@ -1,6 +1,5 @@
 import { Search, UserRound, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { EmptyState, ErrorState } from '@/components/StateViews'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,6 +13,7 @@ import { SampleSizeBadge } from '@/features/compare/SampleSizeBadge'
 import { usePlayerSearch, usePlayerStats } from '@/hooks/useAnalytics'
 import { useSeasons } from '@/hooks/useCatalog'
 import { useDebounced } from '@/hooks/useDebounced'
+import { useUrlParams } from '@/hooks/useUrlParams'
 import { formatValue } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { Metric, PlayerStats } from '@/services/api'
@@ -274,7 +274,7 @@ function Comparison({ ids, season, onRemove }: { ids: string[]; season: number |
 }
 
 export function PlayersPage() {
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useUrlParams()
   const seasons = useSeasons()
   const ids = useMemo(() => params.getAll('player').slice(0, MAX_COMPARE), [params])
   const seasonParam = Number(params.get('season'))
@@ -284,7 +284,7 @@ export function PlayersPage() {
     const next = new URLSearchParams()
     if (nextSeason !== null) next.set('season', String(nextSeason))
     for (const id of nextIds) next.append('player', id)
-    setParams(next, { replace: true })
+    setParams(next)
   }
 
   return (

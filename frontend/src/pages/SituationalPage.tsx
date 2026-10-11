@@ -1,6 +1,5 @@
 import { Database } from 'lucide-react'
 import { lazy, Suspense, useCallback, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { EmptyState, ErrorState } from '@/components/StateViews'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -16,6 +15,7 @@ import { FiltersPanel } from '@/features/compare/FiltersPanel'
 import { MIN_SAMPLE } from '@/features/compare/SampleSizeBadge'
 import { useSituational, useTendencies } from '@/hooks/useAnalytics'
 import { useSeasons } from '@/hooks/useCatalog'
+import { useUrlParams } from '@/hooks/useUrlParams'
 import { formatDifference, formatValue, METRIC_LABELS } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { GroupBy, Situational } from '@/services/api'
@@ -83,7 +83,7 @@ function SituationTable({ data, metric }: { data: Situational; metric: string })
 }
 
 export function SituationalPage() {
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useUrlParams()
   const scope = useMemo(() => parseScope(params), [params])
   const filters = useMemo(() => readFilters(params), [params])
   const groupBy = parseGroup(params.get('group_by'))
@@ -91,18 +91,15 @@ export function SituationalPage() {
   const seasons = useSeasons()
 
   const setScope = useCallback(
-    (next: Scope) => setParams((p) => writeScope(p, next), { replace: true }),
+    (next: Scope) => setParams((p) => writeScope(p, next)),
     [setParams],
   )
   const setParam = (key: string, value: string) =>
-    setParams(
-      (p) => {
-        const next = new URLSearchParams(p)
-        next.set(key, value)
-        return next
-      },
-      { replace: true },
-    )
+    setParams((p) => {
+      const next = new URLSearchParams(p)
+      next.set(key, value)
+      return next
+    })
 
   const query = toAnalyticsQuery(scope, filters)
   const situational = useSituational({ ...query, team: scope.team || null, groupBy })
@@ -215,7 +212,7 @@ export function SituationalPage() {
       </Card>
       <div className="grid gap-6 lg:grid-cols-[18rem_1fr]">
         <aside className="lg:sticky lg:top-6 lg:self-start">
-          <FiltersPanel value={filters} onApply={(f) => setParams((p) => writeFilters(p, f), { replace: true })} />
+          <FiltersPanel value={filters} onApply={(f) => setParams((p) => writeFilters(p, f))} />
         </aside>
         <div className="min-w-0">{results}</div>
       </div>

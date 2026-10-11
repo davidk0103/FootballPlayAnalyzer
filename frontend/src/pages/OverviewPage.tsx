@@ -1,6 +1,6 @@
 import { ArrowRight, Database, Shield, Swords } from 'lucide-react'
 import { lazy, Suspense, useCallback, useMemo } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { EmptyState, ErrorState } from '@/components/StateViews'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,6 +13,7 @@ import { formatValue } from '@/lib/format'
 import { SampleSizeBadge } from '@/features/compare/SampleSizeBadge'
 import { useEfficiency, useTendencies, useTrends } from '@/hooks/useAnalytics'
 import { useSeasons } from '@/hooks/useCatalog'
+import { useUrlParams } from '@/hooks/useUrlParams'
 import type { Efficiency, Metric, Side } from '@/services/api'
 
 const TrendChart = lazy(() => import('@/features/analytics/charts').then((m) => ({ default: m.TrendChart })))
@@ -85,10 +86,10 @@ function SidePanel({ data, side }: { data: Efficiency; side: Side }) {
 }
 
 export function OverviewPage() {
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useUrlParams()
   const scope = useMemo(() => parseScope(params), [params])
   const setScope = useCallback(
-    (next: Scope) => setParams((p) => writeScope(p, next), { replace: true }),
+    (next: Scope) => setParams((p) => writeScope(p, next)),
     [setParams],
   )
   const seasons = useSeasons()

@@ -1,5 +1,5 @@
 import { ChevronDown, CircleSlash, Database, Gauge } from 'lucide-react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { EmptyState, ErrorState } from '@/components/StateViews'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -20,11 +20,12 @@ import {
 } from '@/features/jobs/format'
 import { useCurrentUser } from '@/hooks/useAuth'
 import { useCacheStats, useCancelJob, useJob, useJobs, useNow } from '@/hooks/useJobs'
+import { useUrlParams } from '@/hooks/useUrlParams'
 import { cn } from '@/lib/utils'
 import { isActiveJob, type Job } from '@/services/api'
 
 export function JobsPage() {
-  const [params, setParams] = useSearchParams()
+  const [params, setParams] = useUrlParams()
   const rawStatus = params.get('status')
   const status = isJobStatus(rawStatus) ? rawStatus : null
   const selectedId = params.get('job')
@@ -35,12 +36,14 @@ export function JobsPage() {
   const now = useNow(anyActive)
 
   const update = (changes: Record<string, string | null>) => {
-    const next = new URLSearchParams(params)
-    for (const [key, value] of Object.entries(changes)) {
-      if (value === null || value === '') next.delete(key)
-      else next.set(key, value)
-    }
-    setParams(next, { replace: true })
+    setParams((prev) => {
+      const next = new URLSearchParams(prev)
+      for (const [key, value] of Object.entries(changes)) {
+        if (value === null || value === '') next.delete(key)
+        else next.set(key, value)
+      }
+      return next
+    })
   }
 
   const selectedOffList =
