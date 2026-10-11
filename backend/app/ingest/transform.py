@@ -13,6 +13,9 @@ BOOL_COLUMNS: dict[str, str] = {
     "pass": "is_pass",
     "rush": "is_rush",
     "complete_pass": "complete_pass",
+    "incomplete_pass": "incomplete_pass",
+    "pass_attempt": "pass_attempt",
+    "rush_attempt": "rush_attempt",
     "sack": "sack",
     "qb_scramble": "qb_scramble",
     "touchdown": "touchdown",
@@ -39,6 +42,9 @@ INT_COLUMNS: dict[str, str] = {
     "yardline_100": "yard_line_100",
     "score_differential": "score_differential",
     "yards_gained": "yards_gained",
+    "passing_yards": "passing_yards",
+    "rushing_yards": "rushing_yards",
+    "receiving_yards": "receiving_yards",
 }
 PASSTHROUGH_COLUMNS: dict[str, str] = {
     "game_id": "external_game_id",

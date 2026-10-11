@@ -118,12 +118,19 @@ class Play(Base):
 
     play_type: Mapped[str] = mapped_column(String(20))
     yards_gained: Mapped[int | None] = mapped_column(SmallInteger)
+    # Official-stat yardage credited to the passer / rusher / receiver (nflverse columns).
+    passing_yards: Mapped[int | None] = mapped_column(SmallInteger)
+    rushing_yards: Mapped[int | None] = mapped_column(SmallInteger)
+    receiving_yards: Mapped[int | None] = mapped_column(SmallInteger)
     epa: Mapped[float | None] = mapped_column(Float)
     success: Mapped[bool | None]
 
     is_pass: Mapped[bool | None]
     is_rush: Mapped[bool | None]
     complete_pass: Mapped[bool | None]
+    incomplete_pass: Mapped[bool | None]
+    pass_attempt: Mapped[bool | None]
+    rush_attempt: Mapped[bool | None]
     sack: Mapped[bool | None]
     qb_scramble: Mapped[bool | None]
     touchdown: Mapped[bool | None]
