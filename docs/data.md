@@ -108,6 +108,62 @@ rows are counted in the dataset summary but not stored. Rows that fail
 validation (for example, missing `game_id`/`play_id`, or a team code not in the
 seeded list) go to `rejected_rows` with a reason.
 
+### Player yardage (M3)
+
+Migration `0003` added `passing_yards`, `rushing_yards`, `receiving_yards`,
+`pass_attempt`, `rush_attempt`, and `incomplete_pass` to `plays`
+([ADR 013](decisions/013-additive-player-yards-migration.md)). Player stats use these
+credited values, not `yards_gained` (which differs on sacks, laterals, and returns).
+Databases imported before the migration need a forced re-import to fill them; until
+then player yardage is `n/a`. Fumbles are not attributed to players.
+
+## User uploads (M3)
+
+Signed-in users can upload their own play-by-play CSV. Uploaded plays live in
+`user_plays`, separate from the public `plays` table
+([ADR 006](decisions/006-separate-user-dataset-tables.md)), and are visible only to the
+owner.
+
+### File rules
+
+UTF-8 (a BOM is fine), delimiter `,` `;` tab or `|` (detected), a unique non-empty
+header, at most 25 MB, 100 columns, 200,000 rows, and 1,000 characters per cell, and
+every row as wide as the header. Files with NUL bytes are treated as binary and
+rejected. See [ADR 011](decisions/011-server-side-csv-validation.md).
+
+### Fields
+
+The user maps their columns to these fields (header aliases are suggested
+automatically, ignoring case and punctuation):
+
+| Field | Required | Accepts |
+| --- | --- | --- |
+| `game_key` | yes | Any text that is the same for every play of a game. |
+| `offense`, `defense` | yes | Team codes, 1-5 letters or digits (upper-cased). Must differ. |
+| `play_type` | yes | `pass`, `run`, `punt`, `field_goal`, `kickoff`, `extra_point`, `qb_kneel`, `qb_spike`, `no_play`, plus synonyms (`rush`, `fg`, `pat`, `kneel`, `penalty`, ...). Sacks are passes; scrambles are runs. |
+| `season`, `season_type`, `week` | no | Year 1900-2100; `REG`/`POST`/`PRE` (or `regular`, `playoffs`, ...); week 0-30. |
+| `qtr`, `down`, `yards_to_go`, `yard_line_100`, `score_differential` | no | Quarter 1-6 (5+ = overtime), down 1-4, yards to go 0-100, yards from the opponent end zone 0-100, offense score minus defense score (-200 to 200). |
+| `yards_gained`, `epa` | no | Net yards (-110 to 110); expected points added (-20 to 20). |
+| `success`, `complete_pass`, `sack`, `touchdown`, `interception`, `fumble_lost`, `first_down`, `first_down_penalty`, `penalty`, `third_down_converted`, `two_point_attempt` | no | `1/0`, `true/false`, `yes/no`, `y/n`, `t/f`. |
+
+Rules:
+
+- A row is rejected if a required field is blank, any mapped value cannot be parsed or
+  is out of range, or offense equals defense. The reason names the field and the value
+  ("Down must be a whole number from 1 to 4 (got '5')"). Rejected rows are stored
+  with their original values. The first 1,000 rejected
+  rows are kept for review.
+- Blank optional values are unknown (`NULL`), never 0 or false; a metric that needs an
+  unmapped field is `n/a` and the upload lists the missing fields as a warning.
+- `success` is derived as `epa > 0` when not mapped but EPA is (matching nflverse).
+  `third_down_converted` is derived from `first_down` on third downs when not mapped.
+  Both derivations are reported as warnings.
+- `no_play` rows are stored but excluded from scrimmage metrics, the same as public data.
+  The scrimmage-play definition above applies unchanged.
+- A real nflverse export uploaded with the suggested mapping gives exactly the same
+  EPA, success rate, and yards per play as the public data for the same plays (tested in
+  `test_processing_stores_rows_separately_and_matches_public_metrics`).
+
 ## Profiling findings (generated)
 
 <!-- PROFILE:START -->

@@ -2,8 +2,10 @@
 
 PlaybookIQ is a football analytics app built on nflverse play-by-play data.
 Milestone 1 shipped a FastAPI + PostgreSQL backend, an ingestion CLI, and a React
-team-comparison page. Milestone 2 adds Celery background imports, crash recovery,
-a Redis analytics cache, and a Jobs dashboard.
+team-comparison page. Milestone 2 added Celery background imports, crash recovery,
+a Redis analytics cache, and a Jobs dashboard. Milestone 3 adds accounts, the
+situational, overview, and player explorers, private CSV uploads, and saved scouting
+reports with CSV/JSON exports.
 
 ```mermaid
 flowchart LR
@@ -19,6 +21,8 @@ flowchart LR
     Worker -->|"job state + ingest_season()"| Pg
     Worker -->|"invalidate season"| Redis
     Cli[Ingestion_CLI] --> Pg
+    Api <-->|"uploads/, exports/"| Vol[(Shared_storage_volume)]
+    Worker <-->|"read CSV, write export"| Vol
 ```
 
 ## Layers
@@ -33,6 +37,11 @@ flowchart LR
 | Jobs | `backend/app/jobs/` | State machine, submission/cancel service, runner, reaper, leases, heartbeats. |
 | Worker | `backend/app/worker/` | Celery app configuration and thin task wrappers around `app.jobs`. |
 | Cache | `backend/app/cache.py` | Redis read-through cache for analytics responses. |
+| Auth | `backend/app/auth/` | argon2id passwords, JWT cookie sessions, rate limiter, `create-admin` CLI. |
+| Sources | `backend/app/services/sources.py` | `resolve_source()`: public season or the viewer's ready upload, as one DataFrame shape. |
+| Uploads | `backend/app/uploads/` | CSV inspection, field schema, mapping suggestions, normalization, processing job. |
+| Reports | `backend/app/reports/` + `analytics/report.py` | Report builder (pure), saved reports service, CSV/JSON export, report and export jobs. |
+| Storage | `backend/app/storage.py` | `Storage` protocol and `LocalStorage` for upload and export files. |
 | Models | `backend/app/models/` | SQLAlchemy 2.0 ORM models; Alembic owns migrations. |
 
 ## Analytics execution
@@ -224,6 +233,88 @@ is the constraint; one main process is shared. Each import peaks at a few hundre
 helps when importing many seasons at once; M4 measures throughput across these
 configurations. Run exactly **one** `beat`.
 
+## Accounts and ownership (M3)
+
+Users register with email and password (argon2id) and get a JWT session in an
+httpOnly, `SameSite=Lax` cookie; every unsafe request also needs the
+`X-PlaybookIQ-CSRF: 1` header ([ADR 009](decisions/009-argon2-jwt-cookie-sessions.md)).
+Login and register are rate limited in Redis with an in-process fallback
+([ADR 010](decisions/010-redis-rate-limiter-with-fallback.md)).
+
+Ownership is enforced in the services, not the routes: every lookup of an upload,
+report, export, or private job filters on `user_id`, and a miss is a 404 whether the
+row does not exist or belongs to someone else. Season imports change shared data, so
+only admins can start them ([ADR 008](decisions/008-generic-owner-scoped-jobs.md)).
+
+## Data sources: public seasons and uploads (M3)
+
+Every analytics endpoint calls `resolve_source(session, season, dataset_id, viewer)`.
+It returns a `PlaySource` for either the public season (the latest completed dataset)
+or one of the viewer's `ready` uploads, and the analytics read the same DataFrame
+columns from either. Upload frames come from `user_plays` and are LRU-cached in process
+by `(dataset_id, content_version)`. Their Redis cache keys use
+`cache_scope=upload:{id}` and the upload's `content_version`, so reprocessing an
+upload changes its keys ([ADR 006](decisions/006-separate-user-dataset-tables.md)).
+"League" values for an upload are computed across the teams in that upload, and the
+response says so in `warnings`.
+
+## Upload pipeline (M3)
+
+```mermaid
+sequenceDiagram
+    participant UI as Browser
+    participant API
+    participant Vol as Storage volume
+    participant W as Worker
+    participant PG as PostgreSQL
+    UI->>API: POST /uploads (multipart, 25 MB cap)
+    API->>Vol: stream to uploads/<uuid>.csv.part, rename
+    API->>API: inspect_csv: UTF-8, delimiter, header, row/col/cell limits
+    API->>PG: user_datasets (uploaded) + preview + suggested mapping
+    UI->>API: POST /uploads/{id}/validate {mapping}
+    API->>Vol: read first 2,000 rows
+    API-->>UI: accepted / rejected / issues / warnings (status validated)
+    UI->>API: POST /uploads/{id}/process
+    API->>PG: claim status processing (conditional update) + import_upload job
+    W->>Vol: read CSV in 20k-row chunks, normalize
+    W->>PG: user_plays (5k-row inserts), user_rejected_rows, status ready
+    W->>Vol: delete the CSV (after success)
+    UI->>API: GET /uploads/{id} (polls every 1.5s while processing)
+```
+
+- Validation is by content, never by extension or MIME type
+  ([ADR 011](decisions/011-server-side-csv-validation.md)). Files are stored under random
+  names; the user's filename is display-only
+  ([ADR 007](decisions/007-upload-storage-on-shared-volume.md)).
+- Processing replaces the upload's previous rows in one transaction, so reprocessing
+  is idempotent. No valid rows means `failed` with a reason.
+- `content_version = sha256(upload id + file sha + mapping)`.
+- If the job fails or is cancelled, the next read reconciles the upload to `failed`
+  (or back to `validated` when cancelled), so the user can retry.
+
+## Reports and exports (M3)
+
+`POST /reports` checks that the viewer can read the requested data, saves a `pending`
+`saved_reports` row, and queues a `generate_report` job. The job runs the pure
+`build_report()` (`app/analytics/report.py`) over the same analytics functions the
+explorers use, then stores the result as JSON on the row. Building is deterministic:
+the same data and filters always produce the same metrics, ranks, and findings, ordered
+by strength of evidence. Exports (`report_exports`) are separate `export_report` jobs
+that render CSV or JSON into `exports/` on the shared volume; downloads stream from
+there as attachments ([ADR 012](decisions/012-csv-json-exports-and-print.md)). The
+report page prints cleanly with the browser's print dialog.
+
+## Frontend (M3)
+
+Pages are lazy-loaded routes: Overview, Situational, Players, Compare, My data
+(`/uploads`, `/uploads/:id`), Reports (`/reports`, `/reports/:id`), and Jobs. Uploads
+and reports are wrapped in `RequireAuth`. The data source, season, team, and filters
+live in the URL (`season`, `dataset`, `team`, `group_by`, `down`, ...), so every view
+is linkable. Shared pieces live in `src/features/analytics/` (scope picker, stat tiles,
+definitions, tendency grid, charts). TanStack Query polls uploads, reports, and exports
+every 1.5s only while they are processing or pending. Types come from the OpenAPI
+schema (`make gen-api`), and CI fails if they are stale.
+
 ## Repository layout
 
 ```
@@ -238,5 +329,6 @@ docs/       Architecture, data, API docs, ADRs
 Docker Compose runs `db` (postgres:16), `redis` (redis:7, AOF on,
 `volatile-lru` so only TTL'd cache keys are ever evicted), `backend` (uvicorn),
 `worker` (Celery, healthchecked with `inspect ping`, 120s warm-shutdown grace),
-`beat` (reaper schedule), and `frontend` (Vite on 5317). Migrations and CLI ingestion
+`beat` (reaper schedule), and `frontend` (Vite on 5317). `backend` and `worker` share
+the `user-storage` volume at `/app/data/storage` for uploads and exports. Migrations and CLI ingestion
 are explicit `make` targets, never run silently on boot.

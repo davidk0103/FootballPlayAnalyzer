@@ -1,15 +1,27 @@
 # PlaybookIQ
 
 Football analytics on real NFL play-by-play data from [nflverse](https://github.com/nflverse/nflverse-data).
-Pick two teams and a season, slice by down, distance, field position, quarter, and play
-type, and compare EPA per play, success rate, third-down conversion, explosive plays,
-yards per play, pass rate, and turnovers, with every metric showing its numerator,
-denominator, and sample size. Import any season from 1999 on as a background job and
-watch it run on the Jobs dashboard.
+Explore a team's offense and defense against the league, break plays down by situation,
+look up and compare players, compare two teams head to head, upload your own charting
+CSV and analyze it the same way, and save deterministic scouting reports that export to
+CSV, JSON, or a print-friendly page. Every metric shows its numerator, denominator,
+sample size, and definition.
 
-Status: **Milestone 2** (Celery background imports with retries and crash recovery,
-Redis analytics cache, Jobs dashboard), on top of Milestone 1 (ingestion, analytics API,
-compare page).
+Status: **Milestone 3** (accounts, situational and player explorers, custom CSV uploads,
+saved scouting reports and exports), on top of Milestone 2 (Celery background jobs,
+Redis cache, Jobs dashboard) and Milestone 1 (ingestion, analytics API, compare page).
+
+| Page | What it does |
+| --- | --- |
+| Overview `/overview` | Team efficiency vs league, ranks, weekly trend, third-down breakdown |
+| Situational `/situational` | Group by down, distance, quarter, field position, score margin, or play type |
+| Players `/players` | Search players, credited passing/rushing/receiving stats, side-by-side compare |
+| Compare `/compare` | Two teams head to head with filters |
+| Uploads `/uploads` | Upload a CSV, map columns, review rejected rows, watch processing |
+| Reports `/reports` | Generate and save scouting reports; export CSV/JSON; print |
+| Jobs `/jobs` | Background jobs you own (season imports are admin-only) |
+
+Public NFL data needs no account. Uploads, reports, and jobs require signing in.
 
 | Layer | Stack |
 | --- | --- |
@@ -31,11 +43,17 @@ make migrate                    # alembic upgrade head
 make ingest SEASONS=2023,2024   # synchronous CLI import: ~20 MB/season, ~10 s/season
 ```
 
-Open <http://localhost:5317/compare?team_a=KC&team_b=PHI&season=2024>.
+Open <http://localhost:5317/overview?team=DET&season=2024>.
 API docs: <http://localhost:8317/docs>.
 
-To import in the background instead, open <http://localhost:5317/jobs> and queue a
-season, or run `make import-job SEASON=2022`. Jobs retry transient failures with
+Create an account at <http://localhost:5317/register> to upload CSVs and save reports.
+Uploaded files are stored on the shared `user-storage` volume and deleted once processed;
+see [data: user uploads](docs/data.md#user-uploads-m3) for the accepted columns.
+
+Season imports through the API are admin-only. Create an admin with
+`make admin EMAIL=you@example.com` (it prompts for a password), then queue a season at
+<http://localhost:5317/jobs> or run `make import-job SEASON=2022 EMAIL=you@example.com`.
+Jobs retry transient failures with
 backoff, survive worker crashes, can be cancelled (the import rolls back), and refresh
 the analytics cache when they finish.
 
@@ -78,11 +96,12 @@ submitted jobs wait in `queued` until a broker and worker are available.
 | `make up` / `make down` | Start / stop the Compose stack |
 | `make migrate` | Apply Alembic migrations in the backend container |
 | `make ingest SEASONS=2023,2024` | Import seasons synchronously (CLI) in the backend container |
-| `make import-job SEASON=2022` | Queue a background import through the API |
+| `make admin EMAIL=...` | Create or promote an admin account |
+| `make import-job SEASON=2022 EMAIL=...` | Queue a background import through the API as an admin |
 | `make scale-workers WORKERS=4` | Run N worker containers (1/2/4/8 tested) |
 | `make worker-logs` / `make reap-jobs` | Tail worker + beat logs / run the stale-job reaper now |
 | `make test` | Start the disposable test DB (5434) and Redis (6381), run backend (incl. real worker) and frontend tests |
-| `make e2e` | Playwright happy path (reuses servers on 8317/5317 or starts them) |
+| `make e2e` | Playwright: compare, jobs, explorers, upload-to-report flow (reuses servers on 8317/5317 or starts them) |
 | `make lint` / `make typecheck` | ruff + oxlint / mypy strict + tsc strict |
 | `make profile` | Re-profile the nflverse files and refresh `docs/data.md` |
 | `make gen-api` | Regenerate `frontend/openapi.json` and the TypeScript API types |
@@ -95,19 +114,23 @@ backend/
     api/           routes, dependencies, error envelope (no business logic)
     services/      orchestration and response envelopes
     repositories/  SQLAlchemy queries
-    analytics/     pure pandas metric and filter functions
+    analytics/     pure pandas metrics, situations, players, scouting report rules
+    auth/          argon2 passwords, JWT cookie sessions, rate limiter, admin CLI
+    uploads/       CSV inspection, column mapping, normalization, chunked processing
+    reports/       saved reports, report jobs, CSV/JSON export rendering
     ingest/        nflverse download, validation, chunked upserts, CLI
-    jobs/          job state machine, submit/cancel, runner, reaper, leases, heartbeats
+    jobs/          owner-scoped job state machine, handlers, runner, reaper, leases
     worker/        Celery app and tasks
-    cache.py       Redis analytics cache
+    storage.py     file storage on the shared volume (uploads/, exports/)
+    cache.py       Redis analytics cache (scoped by dataset version)
     models/        SQLAlchemy models
   alembic/         migrations
   scripts/         profile_pbp.py, export_openapi.py, make_test_fixture.py
   tests/           unit/, integration/, fixtures/ (trimmed real nflverse sample)
 frontend/
-  src/pages/       LandingPage, ComparePage, JobsPage
-  src/features/compare/  pickers, filters, metric cards, chart, definitions
-  src/features/jobs/     import form, status badges, attempt history
+  src/pages/       Landing, Auth, Overview, Situational, Players, Compare,
+                   Uploads, UploadDetail, Reports, ReportDetail, Jobs
+  src/features/    analytics (filters, grids, charts), compare, uploads, reports, jobs
   src/services/    typed API client + generated OpenAPI types
   e2e/             Playwright tests
 docs/              architecture, data, API, ADRs
