@@ -1,0 +1,223 @@
+{
+ "filters": {
+  "season": 2024,
+  "side": "defense",
+  "season_type": null,
+  "week_min": null,
+  "week_max": null,
+  "opponent": null,
+  "down": null,
+  "distance": null,
+  "field_zone": null,
+  "qtr": null,
+  "score_state": null,
+  "play_type": null,
+  "explosive_run_yards": 10,
+  "explosive_pass_yards": 20
+ },
+ "definitions": {
+  "epa_per_play": "Sum of expected points added / scrimmage plays with EPA. Scrimmage plays are passes (incl. sacks) and runs (incl. scrambles), excluding penalties that nullified the play, kneels, spikes, and two-point tries.",
+  "success_rate": "Share of scrimmage plays with positive EPA (the nflverse definition of success, not the 40/60/100% down-based rule).",
+  "yards_per_play": "Total yards gained / scrimmage plays.",
+  "pass_rate": "Pass plays (including sacks) / scrimmage plays.",
+  "first_down_rate": "Scrimmage plays that gained a first down (incl. by penalty) / plays.",
+  "third_down_conversion_rate": "Third-down scrimmage plays where the offense earned a first down or touchdown on the play (nflverse third_down_converted), plus plays that stood with an accepted defensive penalty awarding a first down / all third-down scrimmage plays. Defensive return touchdowns are failures. Plays wiped out by penalty (no_play) are excluded from both sides.",
+  "explosive_play_rate": "Runs of 10+ yards or passes of 20+ yards / scrimmage plays with known yardage. Thresholds are configurable (defaults shown).",
+  "turnovers_per_game": "(Interceptions + fumbles lost) / games in the sample.",
+  "rank": "Position among all teams on EPA/play under the same filters (1 = best). Defenses are ranked by EPA/play allowed, lowest first.",
+  "league": "Play-weighted average over every team's plays under the same filters."
+ },
+ "dataset": {
+  "source": "nflverse pbp",
+  "version": "2026-10-10 11:17:28 EDT",
+  "sha256": "3fd2896bc0b911b615142d2f1fabae54a4bbba5ab7b73b28187b118ef8af6a3b",
+  "kind": "public",
+  "id": null,
+  "name": null
+ },
+ "warnings": [],
+ "team": {
+  "abbreviation": "DET",
+  "name": "Detroit Lions"
+ },
+ "splits": [
+  {
+   "key": "all",
+   "label": "All plays",
+   "plays": 1080,
+   "games": 18,
+   "metrics": {
+    "epa_per_play": {
+     "value": -0.0374,
+     "numerator": -40.3493,
+     "denominator": 1080
+    },
+    "success_rate": {
+     "value": 0.4231,
+     "numerator": 457.0,
+     "denominator": 1080
+    },
+    "yards_per_play": {
+     "value": 5.8417,
+     "numerator": 6309.0,
+     "denominator": 1080
+    },
+    "pass_rate": {
+     "value": 0.6259,
+     "numerator": 676.0,
+     "denominator": 1080
+    },
+    "explosive_play_rate": {
+     "value": 0.1102,
+     "numerator": 119.0,
+     "denominator": 1080
+    }
+   },
+   "league": {
+    "epa_per_play": {
+     "value": 0.0109,
+     "numerator": 381.8757,
+     "denominator": 34902
+    },
+    "success_rate": {
+     "value": 0.4397,
+     "numerator": 15347.0,
+     "denominator": 34902
+    },
+    "yards_per_play": {
+     "value": 5.5319,
+     "numerator": 193073.0,
+     "denominator": 34902
+    },
+    "pass_rate": {
+     "value": 0.5701,
+     "numerator": 19897.0,
+     "denominator": 34902
+    },
+    "explosive_play_rate": {
+     "value": 0.0996,
+     "numerator": 3475.0,
+     "denominator": 34902
+    }
+   },
+   "rank": {
+    "metric": "epa_per_play",
+    "rank": 7,
+    "of": 32,
+    "better": "lower"
+   }
+  },
+  {
+   "key": "pass",
+   "label": "Passing",
+   "plays": 676,
+   "games": 18,
+   "metrics": {
+    "epa_per_play": {
+     "value": -0.0523,
+     "numerator": -35.3342,
+     "denominator": 676
+    },
+    "success_rate": {
+     "value": 0.4364,
+     "numerator": 295.0,
+     "denominator": 676
+    },
+    "yards_per_play": {
+     "value": 6.5784,
+     "numerator": 4447.0,
+     "denominator": 676
+    },
+    "explosive_play_rate": {
+     "value": 0.0991,
+     "numerator": 67.0,
+     "denominator": 676
+    }
+   },
+   "league": {
+    "epa_per_play": {
+     "value": 0.0261,
+     "numerator": 518.6993,
+     "denominator": 19897
+    },
+    "success_rate": {
+     "value": 0.4493,
+     "numerator": 8940.0,
+     "denominator": 19897
+    },
+    "yards_per_play": {
+     "value": 6.2258,
+     "numerator": 123874.0,
+     "denominator": 19897
+    },
+    "explosive_play_rate": {
+     "value": 0.084,
+     "numerator": 1672.0,
+     "denominator": 19897
+    }
+   },
+   "rank": {
+    "metric": "epa_per_play",
+    "rank": 6,
+    "of": 32,
+    "better": "lower"
+   }
+  },
+  {
+   "key": "run",
+   "label": "Rushing",
+   "plays": 404,
+   "games": 18,
+   "metrics": {
+    "epa_per_play": {
+     "value": -0.0124,
+     "numerator": -5.0151,
+     "denominator": 404
+    },
+    "success_rate": {
+     "value": 0.401,
+     "numerator": 162.0,
+     "denominator": 404
+    },
+    "yards_per_play": {
+     "value": 4.6089,
+     "numerator": 1862.0,
+     "denominator": 404
+    },
+    "explosive_play_rate": {
+     "value": 0.1287,
+     "numerator": 52.0,
+     "denominator": 404
+    }
+   },
+   "league": {
+    "epa_per_play": {
+     "value": -0.0091,
+     "numerator": -136.8236,
+     "denominator": 15005
+    },
+    "success_rate": {
+     "value": 0.427,
+     "numerator": 6407.0,
+     "denominator": 15005
+    },
+    "yards_per_play": {
+     "value": 4.6117,
+     "numerator": 69199.0,
+     "denominator": 15005
+    },
+    "explosive_play_rate": {
+     "value": 0.1202,
+     "numerator": 1803.0,
+     "denominator": 15005
+    }
+   },
+   "rank": {
+    "metric": "epa_per_play",
+    "rank": 17,
+    "of": 32,
+    "better": "lower"
+   }
+  }
+ ]
+}

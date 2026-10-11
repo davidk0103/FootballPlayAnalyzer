@@ -1,0 +1,764 @@
+{
+ "filters": {
+  "season": 2024,
+  "side": "offense",
+  "season_type": null,
+  "week_min": null,
+  "week_max": null,
+  "opponent": null,
+  "down": null,
+  "distance": null,
+  "field_zone": null,
+  "qtr": null,
+  "score_state": null,
+  "play_type": null,
+  "explosive_run_yards": 10,
+  "explosive_pass_yards": 20
+ },
+ "definitions": {
+  "epa_per_play": "Sum of expected points added / scrimmage plays with EPA. Scrimmage plays are passes (incl. sacks) and runs (incl. scrambles), excluding penalties that nullified the play, kneels, spikes, and two-point tries.",
+  "success_rate": "Share of scrimmage plays with positive EPA (the nflverse definition of success, not the 40/60/100% down-based rule).",
+  "yards_per_play": "Total yards gained / scrimmage plays.",
+  "pass_rate": "Pass plays (including sacks) / scrimmage plays.",
+  "first_down_rate": "Scrimmage plays that gained a first down (incl. by penalty) / plays.",
+  "third_down_conversion_rate": "Third-down scrimmage plays where the offense earned a first down or touchdown on the play (nflverse third_down_converted), plus plays that stood with an accepted defensive penalty awarding a first down / all third-down scrimmage plays. Defensive return touchdowns are failures. Plays wiped out by penalty (no_play) are excluded from both sides.",
+  "explosive_play_rate": "Runs of 10+ yards or passes of 20+ yards / scrimmage plays with known yardage. Thresholds are configurable (defaults shown).",
+  "turnovers_per_game": "(Interceptions + fumbles lost) / games in the sample.",
+  "league_epa_per_play": "League-wide EPA/play in the same week under the same filters."
+ },
+ "dataset": {
+  "source": "nflverse pbp",
+  "version": "2026-10-10 11:17:28 EDT",
+  "sha256": "3fd2896bc0b911b615142d2f1fabae54a4bbba5ab7b73b28187b118ef8af6a3b",
+  "kind": "public",
+  "id": null,
+  "name": null
+ },
+ "warnings": [],
+ "team": {
+  "abbreviation": "DET",
+  "name": "Detroit Lions"
+ },
+ "games": [
+  {
+   "game_key": "2024_01_LA_DET",
+   "week": 1,
+   "season_type": "REG",
+   "opponent": "LA",
+   "plays": 61,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.1058,
+     "numerator": 6.4524,
+     "denominator": 61
+    },
+    "success_rate": {
+     "value": 0.5082,
+     "numerator": 31.0,
+     "denominator": 61
+    },
+    "yards_per_play": {
+     "value": 5.9508,
+     "numerator": 363.0,
+     "denominator": 61
+    },
+    "pass_rate": {
+     "value": 0.4918,
+     "numerator": 30.0,
+     "denominator": 61
+    },
+    "first_down_rate": {
+     "value": 0.3279,
+     "numerator": 20.0,
+     "denominator": 61
+    },
+    "explosive_play_rate": {
+     "value": 0.0984,
+     "numerator": 6.0,
+     "denominator": 61
+    }
+   },
+   "league_epa_per_play": -0.0377
+  },
+  {
+   "game_key": "2024_02_TB_DET",
+   "week": 2,
+   "season_type": "REG",
+   "opponent": "TB",
+   "plays": 82,
+   "metrics": {
+    "epa_per_play": {
+     "value": -0.0695,
+     "numerator": -5.6968,
+     "denominator": 82
+    },
+    "success_rate": {
+     "value": 0.4268,
+     "numerator": 35.0,
+     "denominator": 82
+    },
+    "yards_per_play": {
+     "value": 5.6463,
+     "numerator": 463.0,
+     "denominator": 82
+    },
+    "pass_rate": {
+     "value": 0.6707,
+     "numerator": 55.0,
+     "denominator": 82
+    },
+    "first_down_rate": {
+     "value": 0.2805,
+     "numerator": 23.0,
+     "denominator": 82
+    },
+    "explosive_play_rate": {
+     "value": 0.0732,
+     "numerator": 6.0,
+     "denominator": 82
+    }
+   },
+   "league_epa_per_play": -0.0282
+  },
+  {
+   "game_key": "2024_03_DET_ARI",
+   "week": 3,
+   "season_type": "REG",
+   "opponent": "ARI",
+   "plays": 66,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.0448,
+     "numerator": 2.9555,
+     "denominator": 66
+    },
+    "success_rate": {
+     "value": 0.5606,
+     "numerator": 37.0,
+     "denominator": 66
+    },
+    "yards_per_play": {
+     "value": 5.6818,
+     "numerator": 375.0,
+     "denominator": 66
+    },
+    "pass_rate": {
+     "value": 0.3788,
+     "numerator": 25.0,
+     "denominator": 66
+    },
+    "first_down_rate": {
+     "value": 0.3485,
+     "numerator": 23.0,
+     "denominator": 66
+    },
+    "explosive_play_rate": {
+     "value": 0.1364,
+     "numerator": 9.0,
+     "denominator": 66
+    }
+   },
+   "league_epa_per_play": -0.0064
+  },
+  {
+   "game_key": "2024_04_SEA_DET",
+   "week": 4,
+   "season_type": "REG",
+   "opponent": "SEA",
+   "plays": 48,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.4577,
+     "numerator": 21.97,
+     "denominator": 48
+    },
+    "success_rate": {
+     "value": 0.5625,
+     "numerator": 27.0,
+     "denominator": 48
+    },
+    "yards_per_play": {
+     "value": 8.1458,
+     "numerator": 391.0,
+     "denominator": 48
+    },
+    "pass_rate": {
+     "value": 0.4583,
+     "numerator": 22.0,
+     "denominator": 48
+    },
+    "first_down_rate": {
+     "value": 0.4167,
+     "numerator": 20.0,
+     "denominator": 48
+    },
+    "explosive_play_rate": {
+     "value": 0.1667,
+     "numerator": 8.0,
+     "denominator": 48
+    }
+   },
+   "league_epa_per_play": -0.0062
+  },
+  {
+   "game_key": "2024_06_DET_DAL",
+   "week": 6,
+   "season_type": "REG",
+   "opponent": "DAL",
+   "plays": 64,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.3739,
+     "numerator": 23.9306,
+     "denominator": 64
+    },
+    "success_rate": {
+     "value": 0.4688,
+     "numerator": 30.0,
+     "denominator": 64
+    },
+    "yards_per_play": {
+     "value": 7.7188,
+     "numerator": 494.0,
+     "denominator": 64
+    },
+    "pass_rate": {
+     "value": 0.4688,
+     "numerator": 30.0,
+     "denominator": 64
+    },
+    "first_down_rate": {
+     "value": 0.4219,
+     "numerator": 27.0,
+     "denominator": 64
+    },
+    "explosive_play_rate": {
+     "value": 0.2188,
+     "numerator": 14.0,
+     "denominator": 64
+    }
+   },
+   "league_epa_per_play": 0.0368
+  },
+  {
+   "game_key": "2024_07_DET_MIN",
+   "week": 7,
+   "season_type": "REG",
+   "opponent": "MIN",
+   "plays": 54,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.1309,
+     "numerator": 7.0704,
+     "denominator": 54
+    },
+    "success_rate": {
+     "value": 0.4259,
+     "numerator": 23.0,
+     "denominator": 54
+    },
+    "yards_per_play": {
+     "value": 7.3148,
+     "numerator": 395.0,
+     "denominator": 54
+    },
+    "pass_rate": {
+     "value": 0.537,
+     "numerator": 29.0,
+     "denominator": 54
+    },
+    "first_down_rate": {
+     "value": 0.3333,
+     "numerator": 18.0,
+     "denominator": 54
+    },
+    "explosive_play_rate": {
+     "value": 0.1111,
+     "numerator": 6.0,
+     "denominator": 54
+    }
+   },
+   "league_epa_per_play": -0.0403
+  },
+  {
+   "game_key": "2024_08_TEN_DET",
+   "week": 8,
+   "season_type": "REG",
+   "opponent": "TEN",
+   "plays": 47,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.0252,
+     "numerator": 1.1839,
+     "denominator": 47
+    },
+    "success_rate": {
+     "value": 0.4468,
+     "numerator": 21.0,
+     "denominator": 47
+    },
+    "yards_per_play": {
+     "value": 4.7872,
+     "numerator": 225.0,
+     "denominator": 47
+    },
+    "pass_rate": {
+     "value": 0.4894,
+     "numerator": 23.0,
+     "denominator": 47
+    },
+    "first_down_rate": {
+     "value": 0.3191,
+     "numerator": 15.0,
+     "denominator": 47
+    },
+    "explosive_play_rate": {
+     "value": 0.0638,
+     "numerator": 3.0,
+     "denominator": 47
+    }
+   },
+   "league_epa_per_play": 0.0574
+  },
+  {
+   "game_key": "2024_09_DET_GB",
+   "week": 9,
+   "season_type": "REG",
+   "opponent": "GB",
+   "plays": 52,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.1266,
+     "numerator": 6.585,
+     "denominator": 52
+    },
+    "success_rate": {
+     "value": 0.4423,
+     "numerator": 23.0,
+     "denominator": 52
+    },
+    "yards_per_play": {
+     "value": 5.0577,
+     "numerator": 263.0,
+     "denominator": 52
+    },
+    "pass_rate": {
+     "value": 0.4423,
+     "numerator": 23.0,
+     "denominator": 52
+    },
+    "first_down_rate": {
+     "value": 0.3077,
+     "numerator": 16.0,
+     "denominator": 52
+    },
+    "explosive_play_rate": {
+     "value": 0.0962,
+     "numerator": 5.0,
+     "denominator": 52
+    }
+   },
+   "league_epa_per_play": 0.0019
+  },
+  {
+   "game_key": "2024_10_DET_HOU",
+   "week": 10,
+   "season_type": "REG",
+   "opponent": "HOU",
+   "plays": 62,
+   "metrics": {
+    "epa_per_play": {
+     "value": -0.105,
+     "numerator": -6.5077,
+     "denominator": 62
+    },
+    "success_rate": {
+     "value": 0.4032,
+     "numerator": 25.0,
+     "denominator": 62
+    },
+    "yards_per_play": {
+     "value": 5.5645,
+     "numerator": 345.0,
+     "denominator": 62
+    },
+    "pass_rate": {
+     "value": 0.4839,
+     "numerator": 30.0,
+     "denominator": 62
+    },
+    "first_down_rate": {
+     "value": 0.2903,
+     "numerator": 18.0,
+     "denominator": 62
+    },
+    "explosive_play_rate": {
+     "value": 0.1452,
+     "numerator": 9.0,
+     "denominator": 62
+    }
+   },
+   "league_epa_per_play": -0.0481
+  },
+  {
+   "game_key": "2024_11_JAX_DET",
+   "week": 11,
+   "season_type": "REG",
+   "opponent": "JAX",
+   "plays": 74,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.569,
+     "numerator": 42.1076,
+     "denominator": 74
+    },
+    "success_rate": {
+     "value": 0.6757,
+     "numerator": 50.0,
+     "denominator": 74
+    },
+    "yards_per_play": {
+     "value": 8.7432,
+     "numerator": 647.0,
+     "denominator": 74
+    },
+    "pass_rate": {
+     "value": 0.4459,
+     "numerator": 33.0,
+     "denominator": 74
+    },
+    "first_down_rate": {
+     "value": 0.4865,
+     "numerator": 36.0,
+     "denominator": 74
+    },
+    "explosive_play_rate": {
+     "value": 0.1892,
+     "numerator": 14.0,
+     "denominator": 74
+    }
+   },
+   "league_epa_per_play": 0.0684
+  },
+  {
+   "game_key": "2024_12_DET_IND",
+   "week": 12,
+   "season_type": "REG",
+   "opponent": "IND",
+   "plays": 71,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.1536,
+     "numerator": 10.9039,
+     "denominator": 71
+    },
+    "success_rate": {
+     "value": 0.5211,
+     "numerator": 37.0,
+     "denominator": 71
+    },
+    "yards_per_play": {
+     "value": 5.507,
+     "numerator": 391.0,
+     "denominator": 71
+    },
+    "pass_rate": {
+     "value": 0.5493,
+     "numerator": 39.0,
+     "denominator": 71
+    },
+    "first_down_rate": {
+     "value": 0.3662,
+     "numerator": 26.0,
+     "denominator": 71
+    },
+    "explosive_play_rate": {
+     "value": 0.0845,
+     "numerator": 6.0,
+     "denominator": 71
+    }
+   },
+   "league_epa_per_play": 0.0064
+  },
+  {
+   "game_key": "2024_13_CHI_DET",
+   "week": 13,
+   "season_type": "REG",
+   "opponent": "CHI",
+   "plays": 69,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.074,
+     "numerator": 5.1028,
+     "denominator": 69
+    },
+    "success_rate": {
+     "value": 0.4638,
+     "numerator": 32.0,
+     "denominator": 69
+    },
+    "yards_per_play": {
+     "value": 5.8696,
+     "numerator": 405.0,
+     "denominator": 69
+    },
+    "pass_rate": {
+     "value": 0.5217,
+     "numerator": 36.0,
+     "denominator": 69
+    },
+    "first_down_rate": {
+     "value": 0.3333,
+     "numerator": 23.0,
+     "denominator": 69
+    },
+    "explosive_play_rate": {
+     "value": 0.1304,
+     "numerator": 9.0,
+     "denominator": 69
+    }
+   },
+   "league_epa_per_play": 0.009
+  },
+  {
+   "game_key": "2024_14_GB_DET",
+   "week": 14,
+   "season_type": "REG",
+   "opponent": "GB",
+   "plays": 76,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.0613,
+     "numerator": 4.6584,
+     "denominator": 76
+    },
+    "success_rate": {
+     "value": 0.4868,
+     "numerator": 37.0,
+     "denominator": 76
+    },
+    "yards_per_play": {
+     "value": 5.1447,
+     "numerator": 391.0,
+     "denominator": 76
+    },
+    "pass_rate": {
+     "value": 0.5526,
+     "numerator": 42.0,
+     "denominator": 76
+    },
+    "first_down_rate": {
+     "value": 0.3421,
+     "numerator": 26.0,
+     "denominator": 76
+    },
+    "explosive_play_rate": {
+     "value": 0.0658,
+     "numerator": 5.0,
+     "denominator": 76
+    }
+   },
+   "league_epa_per_play": 0.0716
+  },
+  {
+   "game_key": "2024_15_BUF_DET",
+   "week": 15,
+   "season_type": "REG",
+   "opponent": "BUF",
+   "plays": 75,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.2577,
+     "numerator": 19.3288,
+     "denominator": 75
+    },
+    "success_rate": {
+     "value": 0.4933,
+     "numerator": 37.0,
+     "denominator": 75
+    },
+    "yards_per_play": {
+     "value": 6.9467,
+     "numerator": 521.0,
+     "denominator": 75
+    },
+    "pass_rate": {
+     "value": 0.8,
+     "numerator": 60.0,
+     "denominator": 75
+    },
+    "first_down_rate": {
+     "value": 0.4,
+     "numerator": 30.0,
+     "denominator": 75
+    },
+    "explosive_play_rate": {
+     "value": 0.1067,
+     "numerator": 8.0,
+     "denominator": 75
+    }
+   },
+   "league_epa_per_play": -0.0395
+  },
+  {
+   "game_key": "2024_16_DET_CHI",
+   "week": 16,
+   "season_type": "REG",
+   "opponent": "CHI",
+   "plays": 64,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.3233,
+     "numerator": 20.6894,
+     "denominator": 64
+    },
+    "success_rate": {
+     "value": 0.5625,
+     "numerator": 36.0,
+     "denominator": 64
+    },
+    "yards_per_play": {
+     "value": 7.4375,
+     "numerator": 476.0,
+     "denominator": 64
+    },
+    "pass_rate": {
+     "value": 0.5156,
+     "numerator": 33.0,
+     "denominator": 64
+    },
+    "first_down_rate": {
+     "value": 0.4062,
+     "numerator": 26.0,
+     "denominator": 64
+    },
+    "explosive_play_rate": {
+     "value": 0.1406,
+     "numerator": 9.0,
+     "denominator": 64
+    }
+   },
+   "league_epa_per_play": 0.0435
+  },
+  {
+   "game_key": "2024_17_DET_SF",
+   "week": 17,
+   "season_type": "REG",
+   "opponent": "SF",
+   "plays": 66,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.3756,
+     "numerator": 24.7892,
+     "denominator": 66
+    },
+    "success_rate": {
+     "value": 0.5606,
+     "numerator": 37.0,
+     "denominator": 66
+    },
+    "yards_per_play": {
+     "value": 6.697,
+     "numerator": 442.0,
+     "denominator": 66
+    },
+    "pass_rate": {
+     "value": 0.5455,
+     "numerator": 36.0,
+     "denominator": 66
+    },
+    "first_down_rate": {
+     "value": 0.3485,
+     "numerator": 23.0,
+     "denominator": 66
+    },
+    "explosive_play_rate": {
+     "value": 0.1061,
+     "numerator": 7.0,
+     "denominator": 66
+    }
+   },
+   "league_epa_per_play": 0.0444
+  },
+  {
+   "game_key": "2024_18_MIN_DET",
+   "week": 18,
+   "season_type": "REG",
+   "opponent": "MIN",
+   "plays": 66,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.0148,
+     "numerator": 0.9777,
+     "denominator": 66
+    },
+    "success_rate": {
+     "value": 0.4848,
+     "numerator": 32.0,
+     "denominator": 66
+    },
+    "yards_per_play": {
+     "value": 5.9697,
+     "numerator": 394.0,
+     "denominator": 66
+    },
+    "pass_rate": {
+     "value": 0.5303,
+     "numerator": 35.0,
+     "denominator": 66
+    },
+    "first_down_rate": {
+     "value": 0.3485,
+     "numerator": 23.0,
+     "denominator": 66
+    },
+    "explosive_play_rate": {
+     "value": 0.0909,
+     "numerator": 6.0,
+     "denominator": 66
+    }
+   },
+   "league_epa_per_play": 0.0218
+  },
+  {
+   "game_key": "2024_20_WAS_DET",
+   "week": 20,
+   "season_type": "POST",
+   "opponent": "WAS",
+   "plays": 65,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.0754,
+     "numerator": 4.8995,
+     "denominator": 65
+    },
+    "success_rate": {
+     "value": 0.5692,
+     "numerator": 37.0,
+     "denominator": 65
+    },
+    "yards_per_play": {
+     "value": 8.0154,
+     "numerator": 521.0,
+     "denominator": 65
+    },
+    "pass_rate": {
+     "value": 0.6462,
+     "numerator": 42.0,
+     "denominator": 65
+    },
+    "first_down_rate": {
+     "value": 0.4462,
+     "numerator": 29.0,
+     "denominator": 65
+    },
+    "explosive_play_rate": {
+     "value": 0.1846,
+     "numerator": 12.0,
+     "denominator": 65
+    }
+   },
+   "league_epa_per_play": 0.099
+  }
+ ]
+}

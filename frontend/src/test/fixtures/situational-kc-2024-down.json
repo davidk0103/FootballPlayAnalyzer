@@ -1,0 +1,396 @@
+{
+ "filters": {
+  "season": 2024,
+  "side": "offense",
+  "season_type": null,
+  "week_min": null,
+  "week_max": null,
+  "opponent": null,
+  "down": null,
+  "distance": null,
+  "field_zone": null,
+  "qtr": null,
+  "score_state": null,
+  "play_type": null,
+  "explosive_run_yards": 10,
+  "explosive_pass_yards": 20
+ },
+ "definitions": {
+  "epa_per_play": "Sum of expected points added / scrimmage plays with EPA. Scrimmage plays are passes (incl. sacks) and runs (incl. scrambles), excluding penalties that nullified the play, kneels, spikes, and two-point tries.",
+  "success_rate": "Share of scrimmage plays with positive EPA (the nflverse definition of success, not the 40/60/100% down-based rule).",
+  "yards_per_play": "Total yards gained / scrimmage plays.",
+  "pass_rate": "Pass plays (including sacks) / scrimmage plays.",
+  "first_down_rate": "Scrimmage plays that gained a first down (incl. by penalty) / plays.",
+  "third_down_conversion_rate": "Third-down scrimmage plays where the offense earned a first down or touchdown on the play (nflverse third_down_converted), plus plays that stood with an accepted defensive penalty awarding a first down / all third-down scrimmage plays. Defensive return touchdowns are failures. Plays wiped out by penalty (no_play) are excluded from both sides.",
+  "explosive_play_rate": "Runs of 10+ yards or passes of 20+ yards / scrimmage plays with known yardage. Thresholds are configurable (defaults shown).",
+  "turnovers_per_game": "(Interceptions + fumbles lost) / games in the sample."
+ },
+ "dataset": {
+  "source": "nflverse pbp",
+  "version": "2026-10-10 11:17:28 EDT",
+  "sha256": "3fd2896bc0b911b615142d2f1fabae54a4bbba5ab7b73b28187b118ef8af6a3b",
+  "kind": "public",
+  "id": null,
+  "name": null
+ },
+ "warnings": [
+  "Small samples (under 30 plays): 4th down"
+ ],
+ "team": {
+  "abbreviation": "KC",
+  "name": "Kansas City Chiefs"
+ },
+ "group_by": "down",
+ "overall": {
+  "key": "all",
+  "label": "All situations",
+  "plays": 1223,
+  "games": 20,
+  "metrics": {
+   "epa_per_play": {
+    "value": 0.0625,
+    "numerator": 76.4828,
+    "denominator": 1223
+   },
+   "success_rate": {
+    "value": 0.4734,
+    "numerator": 579.0,
+    "denominator": 1223
+   },
+   "yards_per_play": {
+    "value": 5.2903,
+    "numerator": 6470.0,
+    "denominator": 1223
+   },
+   "pass_rate": {
+    "value": 0.5993,
+    "numerator": 733.0,
+    "denominator": 1223
+   },
+   "first_down_rate": {
+    "value": 0.3115,
+    "numerator": 381.0,
+    "denominator": 1223
+   },
+   "explosive_play_rate": {
+    "value": 0.0769,
+    "numerator": 94.0,
+    "denominator": 1223
+   }
+  },
+  "league": {
+   "epa_per_play": {
+    "value": 0.0109,
+    "numerator": 381.8757,
+    "denominator": 34902
+   },
+   "success_rate": {
+    "value": 0.4397,
+    "numerator": 15347.0,
+    "denominator": 34902
+   },
+   "yards_per_play": {
+    "value": 5.5319,
+    "numerator": 193073.0,
+    "denominator": 34902
+   },
+   "pass_rate": {
+    "value": 0.5701,
+    "numerator": 19897.0,
+    "denominator": 34902
+   },
+   "first_down_rate": {
+    "value": 0.2989,
+    "numerator": 10432.0,
+    "denominator": 34902
+   },
+   "explosive_play_rate": {
+    "value": 0.0996,
+    "numerator": 3475.0,
+    "denominator": 34902
+   }
+  }
+ },
+ "rows": [
+  {
+   "key": "1",
+   "label": "1st down",
+   "plays": 532,
+   "games": 20,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.0368,
+     "numerator": 19.5746,
+     "denominator": 532
+    },
+    "success_rate": {
+     "value": 0.4549,
+     "numerator": 242.0,
+     "denominator": 532
+    },
+    "yards_per_play": {
+     "value": 5.4041,
+     "numerator": 2875.0,
+     "denominator": 532
+    },
+    "pass_rate": {
+     "value": 0.5038,
+     "numerator": 268.0,
+     "denominator": 532
+    },
+    "first_down_rate": {
+     "value": 0.1898,
+     "numerator": 101.0,
+     "denominator": 532
+    },
+    "explosive_play_rate": {
+     "value": 0.0771,
+     "numerator": 41.0,
+     "denominator": 532
+    }
+   },
+   "league": {
+    "epa_per_play": {
+     "value": -0.0002,
+     "numerator": -2.6922,
+     "denominator": 15321
+    },
+    "success_rate": {
+     "value": 0.4254,
+     "numerator": 6518.0,
+     "denominator": 15321
+    },
+    "yards_per_play": {
+     "value": 5.6358,
+     "numerator": 86346.0,
+     "denominator": 15321
+    },
+    "pass_rate": {
+     "value": 0.4703,
+     "numerator": 7205.0,
+     "denominator": 15321
+    },
+    "first_down_rate": {
+     "value": 0.2076,
+     "numerator": 3181.0,
+     "denominator": 15321
+    },
+    "explosive_play_rate": {
+     "value": 0.1023,
+     "numerator": 1567.0,
+     "denominator": 15321
+    }
+   }
+  },
+  {
+   "key": "2",
+   "label": "2nd down",
+   "plays": 415,
+   "games": 20,
+   "metrics": {
+    "epa_per_play": {
+     "value": -0.0139,
+     "numerator": -5.7553,
+     "denominator": 415
+    },
+    "success_rate": {
+     "value": 0.4651,
+     "numerator": 193.0,
+     "denominator": 415
+    },
+    "yards_per_play": {
+     "value": 5.2747,
+     "numerator": 2189.0,
+     "denominator": 415
+    },
+    "pass_rate": {
+     "value": 0.6361,
+     "numerator": 264.0,
+     "denominator": 415
+    },
+    "first_down_rate": {
+     "value": 0.3446,
+     "numerator": 143.0,
+     "denominator": 415
+    },
+    "explosive_play_rate": {
+     "value": 0.0699,
+     "numerator": 29.0,
+     "denominator": 415
+    }
+   },
+   "league": {
+    "epa_per_play": {
+     "value": 0.0342,
+     "numerator": 397.5105,
+     "denominator": 11617
+    },
+    "success_rate": {
+     "value": 0.4547,
+     "numerator": 5282.0,
+     "denominator": 11617
+    },
+    "yards_per_play": {
+     "value": 5.5278,
+     "numerator": 64216.0,
+     "denominator": 11617
+    },
+    "pass_rate": {
+     "value": 0.5904,
+     "numerator": 6859.0,
+     "denominator": 11617
+    },
+    "first_down_rate": {
+     "value": 0.3358,
+     "numerator": 3901.0,
+     "denominator": 11617
+    },
+    "explosive_play_rate": {
+     "value": 0.0988,
+     "numerator": 1148.0,
+     "denominator": 11617
+    }
+   }
+  },
+  {
+   "key": "3",
+   "label": "3rd down",
+   "plays": 255,
+   "games": 20,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.182,
+     "numerator": 46.4057,
+     "denominator": 255
+    },
+    "success_rate": {
+     "value": 0.5098,
+     "numerator": 130.0,
+     "denominator": 255
+    },
+    "yards_per_play": {
+     "value": 5.3412,
+     "numerator": 1362.0,
+     "denominator": 255
+    },
+    "pass_rate": {
+     "value": 0.7608,
+     "numerator": 194.0,
+     "denominator": 255
+    },
+    "first_down_rate": {
+     "value": 0.4824,
+     "numerator": 123.0,
+     "denominator": 255
+    },
+    "explosive_play_rate": {
+     "value": 0.0902,
+     "numerator": 23.0,
+     "denominator": 255
+    }
+   },
+   "league": {
+    "epa_per_play": {
+     "value": -0.0338,
+     "numerator": -241.4846,
+     "denominator": 7149
+    },
+    "success_rate": {
+     "value": 0.4315,
+     "numerator": 3085.0,
+     "denominator": 7149
+    },
+    "yards_per_play": {
+     "value": 5.4002,
+     "numerator": 38606.0,
+     "denominator": 7149
+    },
+    "pass_rate": {
+     "value": 0.7477,
+     "numerator": 5345.0,
+     "denominator": 7149
+    },
+    "first_down_rate": {
+     "value": 0.4036,
+     "numerator": 2885.0,
+     "denominator": 7149
+    },
+    "explosive_play_rate": {
+     "value": 0.0961,
+     "numerator": 687.0,
+     "denominator": 7149
+    }
+   }
+  },
+  {
+   "key": "4",
+   "label": "4th down",
+   "plays": 21,
+   "games": 15,
+   "metrics": {
+    "epa_per_play": {
+     "value": 0.7742,
+     "numerator": 16.2577,
+     "denominator": 21
+    },
+    "success_rate": {
+     "value": 0.6667,
+     "numerator": 14.0,
+     "denominator": 21
+    },
+    "yards_per_play": {
+     "value": 2.0952,
+     "numerator": 44.0,
+     "denominator": 21
+    },
+    "pass_rate": {
+     "value": 0.3333,
+     "numerator": 7.0,
+     "denominator": 21
+    },
+    "first_down_rate": {
+     "value": 0.6667,
+     "numerator": 14.0,
+     "denominator": 21
+    },
+    "explosive_play_rate": {
+     "value": 0.0476,
+     "numerator": 1.0,
+     "denominator": 21
+    }
+   },
+   "league": {
+    "epa_per_play": {
+     "value": 0.2804,
+     "numerator": 228.542,
+     "denominator": 815
+    },
+    "success_rate": {
+     "value": 0.5669,
+     "numerator": 462.0,
+     "denominator": 815
+    },
+    "yards_per_play": {
+     "value": 4.7914,
+     "numerator": 3905.0,
+     "denominator": 815
+    },
+    "pass_rate": {
+     "value": 0.5988,
+     "numerator": 488.0,
+     "denominator": 815
+    },
+    "first_down_rate": {
+     "value": 0.5706,
+     "numerator": 465.0,
+     "denominator": 815
+    },
+    "explosive_play_rate": {
+     "value": 0.0896,
+     "numerator": 73.0,
+     "denominator": 815
+    }
+   }
+  }
+ ]
+}

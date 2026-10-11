@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 // Requires an API with the 2023 season imported (`make ingest SEASONS=2023`).
 test('pick two teams and see their metrics', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('link', { name: 'Pick your own matchup' }).click()
+  await page.getByRole('navigation', { name: 'Main', exact: true }).getByRole('link', { name: 'Compare' }).click()
   await expect(page.getByText('Pick two teams to compare')).toBeVisible()
 
   await page.getByLabel('Season', { exact: true }).selectOption('2023')

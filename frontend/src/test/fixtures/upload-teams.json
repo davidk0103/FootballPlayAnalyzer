@@ -1,0 +1,82 @@
+[
+ {
+  "abbreviation": "ARI",
+  "offense_plays": 53,
+  "defense_plays": 66
+ },
+ {
+  "abbreviation": "BUF",
+  "offense_plays": 67,
+  "defense_plays": 75
+ },
+ {
+  "abbreviation": "CHI",
+  "offense_plays": 118,
+  "defense_plays": 133
+ },
+ {
+  "abbreviation": "DAL",
+  "offense_plays": 65,
+  "defense_plays": 64
+ },
+ {
+  "abbreviation": "DET",
+  "offense_plays": 1163,
+  "defense_plays": 1082
+ },
+ {
+  "abbreviation": "GB",
+  "offense_plays": 107,
+  "defense_plays": 128
+ },
+ {
+  "abbreviation": "HOU",
+  "offense_plays": 65,
+  "defense_plays": 63
+ },
+ {
+  "abbreviation": "IND",
+  "offense_plays": 48,
+  "defense_plays": 71
+ },
+ {
+  "abbreviation": "JAX",
+  "offense_plays": 47,
+  "defense_plays": 74
+ },
+ {
+  "abbreviation": "LA",
+  "offense_plays": 72,
+  "defense_plays": 60
+ },
+ {
+  "abbreviation": "MIN",
+  "offense_plays": 114,
+  "defense_plays": 120
+ },
+ {
+  "abbreviation": "SEA",
+  "offense_plays": 79,
+  "defense_plays": 48
+ },
+ {
+  "abbreviation": "SF",
+  "offense_plays": 59,
+  "defense_plays": 67
+ },
+ {
+  "abbreviation": "TB",
+  "offense_plays": 46,
+  "defense_plays": 82
+ },
+ {
+  "abbreviation": "TEN",
+  "offense_plays": 71,
+  "defense_plays": 47
+ },
+ {
+  "abbreviation": "WAS",
+  "offense_plays": 71,
+  "defense_plays": 65
+ }
+]

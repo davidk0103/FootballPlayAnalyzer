@@ -1,0 +1,103 @@
+{
+ "valid": true,
+ "mapping_errors": [],
+ "checked_rows": 4,
+ "total_rows": 4,
+ "accepted_rows": 1,
+ "rejected_rows": 3,
+ "issues": [
+  {
+   "row_number": 2,
+   "reason": "Yards to go must be a whole number from 0 to 100 (got '-3')",
+   "values": {
+    "Game": "G1",
+    "Off": "DET",
+    "Def": "GB",
+    "Play Type": "run",
+    "Dn": "2",
+    "Dist": "-3",
+    "Field Pos": "63",
+    "Gn/Ls": "4",
+    "EPA": "0.1"
+   }
+  },
+  {
+   "row_number": 3,
+   "reason": "Offense and defense are the same team",
+   "values": {
+    "Game": "G1",
+    "Off": "GB",
+    "Def": "GB",
+    "Play Type": "run",
+    "Dn": "3",
+    "Dist": "6",
+    "Field Pos": "59",
+    "Gn/Ls": "2",
+    "EPA": "-0.4"
+   }
+  },
+  {
+   "row_number": 4,
+   "reason": "Down must be a whole number from 1 to 4 (got '5')",
+   "values": {
+    "Game": "G1",
+    "Off": "DET",
+    "Def": "GB",
+    "Play Type": "pass",
+    "Dn": "5",
+    "Dist": "10",
+    "Field Pos": "57",
+    "Gn/Ls": "1",
+    "EPA": "-0.2"
+   }
+  }
+ ],
+ "warnings": [
+  "Success was derived from EPA (success = EPA > 0).",
+  "Not in this dataset (metrics that need them show as unavailable): Season, Season type, Week, Quarter, Score differential, Complete pass, Sack, Touchdown, Interception, Fumble lost, First down, First down by penalty, Penalty, Third down converted, Two-point attempt"
+ ],
+ "upload": {
+  "id": "80cace62-f67b-4f43-99db-1c25c5f25fa4",
+  "name": "Week 1 charting",
+  "original_filename": "tiny.csv",
+  "size_bytes": 166,
+  "status": "validated",
+  "delimiter": ",",
+  "columns": [
+   "Game",
+   "Off",
+   "Def",
+   "Play Type",
+   "Dn",
+   "Dist",
+   "Field Pos",
+   "Gn/Ls",
+   "EPA"
+  ],
+  "row_count": 4,
+  "mapping": {
+   "game_key": "Game",
+   "offense": "Off",
+   "defense": "Def",
+   "play_type": "Play Type",
+   "down": "Dn",
+   "yards_to_go": "Dist",
+   "yard_line_100": "Field Pos",
+   "yards_gained": "Gn/Ls",
+   "epa": "EPA"
+  },
+  "stored_count": null,
+  "rejected_count": null,
+  "seasons": [],
+  "warnings": [
+   "Success was derived from EPA (success = EPA > 0).",
+   "Not in this dataset (metrics that need them show as unavailable): Season, Season type, Week, Quarter, Score differential, Complete pass, Sack, Touchdown, Interception, Fumble lost, First down, First down by penalty, Penalty, Third down converted, Two-point attempt"
+  ],
+  "error": null,
+  "job_id": null,
+  "file_retained": true,
+  "created_at": "2026-10-11T04:43:30.825593Z",
+  "updated_at": "2026-10-11T04:43:30.859367Z",
+  "processed_at": null
+ }
+}

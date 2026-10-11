@@ -28,7 +28,7 @@ export function JobProgress({ job, label = 'Processing' }: { job: Job; label?: s
           </span>
         )}
       </div>
-      <Progress value={job.status === 'queued' ? null : pct} aria-label={label}>
+      <Progress value={job.status === 'queued' ? null : pct}>
         <ProgressLabel>{p.stage ? (STAGE_LABEL[p.stage] ?? p.stage) : job.status === 'queued' ? 'Waiting for a worker' : label}</ProgressLabel>
         <ProgressValue>
           {() =>

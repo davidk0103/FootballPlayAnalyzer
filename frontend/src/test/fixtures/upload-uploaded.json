@@ -1,0 +1,265 @@
+{
+ "id": "80cace62-f67b-4f43-99db-1c25c5f25fa4",
+ "name": "Week 1 charting",
+ "original_filename": "tiny.csv",
+ "size_bytes": 166,
+ "status": "uploaded",
+ "delimiter": ",",
+ "columns": [
+  "Game",
+  "Off",
+  "Def",
+  "Play Type",
+  "Dn",
+  "Dist",
+  "Field Pos",
+  "Gn/Ls",
+  "EPA"
+ ],
+ "row_count": 4,
+ "mapping": null,
+ "stored_count": null,
+ "rejected_count": null,
+ "seasons": [],
+ "warnings": [],
+ "error": null,
+ "job_id": null,
+ "file_retained": true,
+ "created_at": "2026-10-11T04:43:30.825593Z",
+ "updated_at": "2026-10-11T04:43:30.825593Z",
+ "processed_at": null,
+ "preview": [
+  [
+   "G1",
+   "DET",
+   "GB",
+   "pass",
+   "1",
+   "10",
+   "75",
+   "12",
+   "0.8"
+  ],
+  [
+   "G1",
+   "DET",
+   "GB",
+   "run",
+   "2",
+   "-3",
+   "63",
+   "4",
+   "0.1"
+  ],
+  [
+   "G1",
+   "GB",
+   "GB",
+   "run",
+   "3",
+   "6",
+   "59",
+   "2",
+   "-0.4"
+  ],
+  [
+   "G1",
+   "DET",
+   "GB",
+   "pass",
+   "5",
+   "10",
+   "57",
+   "1",
+   "-0.2"
+  ]
+ ],
+ "suggested_mapping": {
+  "game_key": "Game",
+  "offense": "Off",
+  "defense": "Def",
+  "play_type": "Play Type",
+  "down": "Dn",
+  "yards_to_go": "Dist",
+  "yards_gained": "Gn/Ls",
+  "epa": "EPA"
+ },
+ "schema_fields": [
+  {
+   "name": "game_key",
+   "label": "Game ID",
+   "kind": "text",
+   "description": "Identifies the game; plays with the same value belong to one game.",
+   "required": true
+  },
+  {
+   "name": "offense",
+   "label": "Offense",
+   "kind": "team",
+   "description": "Team with the ball (abbreviation, 1-5 letters or digits).",
+   "required": true
+  },
+  {
+   "name": "defense",
+   "label": "Defense",
+   "kind": "team",
+   "description": "Team on defense (abbreviation).",
+   "required": true
+  },
+  {
+   "name": "play_type",
+   "label": "Play type",
+   "kind": "play_type",
+   "description": "pass, run, punt, field_goal, kickoff, extra_point, qb_kneel, qb_spike, or no_play. Sacks are passes; scrambles are runs.",
+   "required": true
+  },
+  {
+   "name": "season",
+   "label": "Season",
+   "kind": "integer",
+   "description": "Season year.",
+   "required": false
+  },
+  {
+   "name": "season_type",
+   "label": "Season type",
+   "kind": "season_type",
+   "description": "REG, POST, or PRE.",
+   "required": false
+  },
+  {
+   "name": "week",
+   "label": "Week",
+   "kind": "integer",
+   "description": "Week number.",
+   "required": false
+  },
+  {
+   "name": "qtr",
+   "label": "Quarter",
+   "kind": "integer",
+   "description": "Quarter (5 = overtime).",
+   "required": false
+  },
+  {
+   "name": "down",
+   "label": "Down",
+   "kind": "integer",
+   "description": "Down (1-4); blank for kickoffs and tries.",
+   "required": false
+  },
+  {
+   "name": "yards_to_go",
+   "label": "Yards to go",
+   "kind": "integer",
+   "description": "Distance to a first down.",
+   "required": false
+  },
+  {
+   "name": "yard_line_100",
+   "label": "Yards from end zone",
+   "kind": "integer",
+   "description": "Distance from the opponent's end zone (1-99).",
+   "required": false
+  },
+  {
+   "name": "score_differential",
+   "label": "Score differential",
+   "kind": "integer",
+   "description": "Offense score minus defense score before the play.",
+   "required": false
+  },
+  {
+   "name": "yards_gained",
+   "label": "Yards gained",
+   "kind": "integer",
+   "description": "Net yards on the play.",
+   "required": false
+  },
+  {
+   "name": "epa",
+   "label": "EPA",
+   "kind": "number",
+   "description": "Expected points added, if your data has it. Never estimated.",
+   "required": false
+  },
+  {
+   "name": "success",
+   "label": "Success",
+   "kind": "boolean",
+   "description": "Successful play (if omitted and EPA is mapped, success = EPA > 0).",
+   "required": false
+  },
+  {
+   "name": "complete_pass",
+   "label": "Complete pass",
+   "kind": "boolean",
+   "description": "Pass was completed.",
+   "required": false
+  },
+  {
+   "name": "sack",
+   "label": "Sack",
+   "kind": "boolean",
+   "description": "Quarterback was sacked.",
+   "required": false
+  },
+  {
+   "name": "touchdown",
+   "label": "Touchdown",
+   "kind": "boolean",
+   "description": "Play resulted in a touchdown.",
+   "required": false
+  },
+  {
+   "name": "interception",
+   "label": "Interception",
+   "kind": "boolean",
+   "description": "Pass was intercepted.",
+   "required": false
+  },
+  {
+   "name": "fumble_lost",
+   "label": "Fumble lost",
+   "kind": "boolean",
+   "description": "Offense lost a fumble.",
+   "required": false
+  },
+  {
+   "name": "first_down",
+   "label": "First down",
+   "kind": "boolean",
+   "description": "Play earned a first down (including by penalty).",
+   "required": false
+  },
+  {
+   "name": "first_down_penalty",
+   "label": "First down by penalty",
+   "kind": "boolean",
+   "description": "First down awarded by a defensive penalty.",
+   "required": false
+  },
+  {
+   "name": "penalty",
+   "label": "Penalty",
+   "kind": "boolean",
+   "description": "A penalty was called.",
+   "required": false
+  },
+  {
+   "name": "third_down_converted",
+   "label": "Third down converted",
+   "kind": "boolean",
+   "description": "Offense converted on third down (if omitted and First down is mapped, third-down plays use First down).",
+   "required": false
+  },
+  {
+   "name": "two_point_attempt",
+   "label": "Two-point attempt",
+   "kind": "boolean",
+   "description": "Play was a two-point try (excluded from scrimmage metrics).",
+   "required": false
+  }
+ ],
+ "job": null
+}

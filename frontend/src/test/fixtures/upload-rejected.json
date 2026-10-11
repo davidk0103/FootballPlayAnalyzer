@@ -1,0 +1,80 @@
+{
+ "items": [
+  {
+   "row_number": 4,
+   "reason": "Down must be a whole number from 1 to 4 (got '5')",
+   "values": {
+    "Dn": "5",
+    "TD": "0",
+    "Wk": "1",
+    "Def": "LA",
+    "EPA": "-0.548",
+    "INT": "0",
+    "Off": "DET",
+    "Qtr": "1",
+    "Dist": "10",
+    "Flag": "0",
+    "Game": "2024_01_LA_DET",
+    "Gn/Ls": "2",
+    "Fumble": "0",
+    "Margin": "0",
+    "Season": "2024",
+    "Field Pos": "64",
+    "Play Type": "run",
+    "First Down": "0"
+   }
+  },
+  {
+   "row_number": 8,
+   "reason": "Offense is blank",
+   "values": {
+    "Dn": "2",
+    "TD": "0",
+    "Wk": "1",
+    "Def": "DET",
+    "EPA": "1.1147",
+    "INT": "0",
+    "Off": "",
+    "Qtr": "1",
+    "Dist": "5",
+    "Flag": "0",
+    "Game": "2024_01_LA_DET",
+    "Gn/Ls": "11",
+    "Fumble": "0",
+    "Margin": "0",
+    "Season": "2024",
+    "Field Pos": "85",
+    "Play Type": "pass",
+    "First Down": "1"
+   }
+  },
+  {
+   "row_number": 12,
+   "reason": "Offense and defense are the same team",
+   "values": {
+    "Dn": "1",
+    "TD": "0",
+    "Wk": "1",
+    "Def": "LA",
+    "EPA": "1.0434",
+    "INT": "0",
+    "Off": "LA",
+    "Qtr": "1",
+    "Dist": "10",
+    "Flag": "0",
+    "Game": "2024_01_LA_DET",
+    "Gn/Ls": "16",
+    "Fumble": "0",
+    "Margin": "0",
+    "Season": "2024",
+    "Field Pos": "54",
+    "Play Type": "pass",
+    "First Down": "1"
+   }
+  }
+ ],
+ "page": 1,
+ "page_size": 50,
+ "total": 3,
+ "stored_limit": 1000
+}

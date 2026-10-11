@@ -1,0 +1,31 @@
+{
+ "items": [
+  {
+   "id": "e031ba0b-d526-4f29-a121-527c3125019f",
+   "title": "GB scouting report",
+   "team": "GB",
+   "season": null,
+   "dataset_id": "a0bb644c-ad35-4f0c-bf04-10ab67d7f77f",
+   "status": "ready",
+   "error": null,
+   "job_id": "a2911d86-71de-4fb6-a001-e781d61eb77f",
+   "created_at": "2026-10-11T04:40:08.808181Z",
+   "updated_at": "2026-10-11T04:40:08.953495Z"
+  },
+  {
+   "id": "10fbd0a9-037d-431f-847a-0c396da9569b",
+   "title": "Detroit Lions 2024 scouting report",
+   "team": "DET",
+   "season": 2024,
+   "dataset_id": null,
+   "status": "ready",
+   "error": null,
+   "job_id": "fb94ea4b-66f9-4be0-8490-39d3fd85390f",
+   "created_at": "2026-10-11T04:40:08.774922Z",
+   "updated_at": "2026-10-11T04:40:08.794994Z"
+  }
+ ],
+ "page": 1,
+ "page_size": 25,
+ "total": 2
+}

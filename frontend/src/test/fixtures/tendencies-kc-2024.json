@@ -1,0 +1,453 @@
+{
+ "filters": {
+  "season": 2024,
+  "side": "offense",
+  "season_type": null,
+  "week_min": null,
+  "week_max": null,
+  "opponent": null,
+  "down": null,
+  "distance": null,
+  "field_zone": null,
+  "qtr": null,
+  "score_state": null,
+  "play_type": null,
+  "explosive_run_yards": 10,
+  "explosive_pass_yards": 20
+ },
+ "definitions": {
+  "pass_rate": "Pass plays (including sacks) / scrimmage plays in the cell. Run rate is 1 - pass rate.",
+  "league_pass_rate": "Pass rate of all teams in the same down and distance under the same filters.",
+  "third_down_conversion_rate": "Third-down scrimmage plays where the offense earned a first down or touchdown on the play (nflverse third_down_converted), plus plays that stood with an accepted defensive penalty awarding a first down / all third-down scrimmage plays. Defensive return touchdowns are failures. Plays wiped out by penalty (no_play) are excluded from both sides.",
+  "converted_by_penalty": "Third downs converted only by an accepted defensive penalty on a play that stood.",
+  "avg_yards_to_go": "Mean yards to go on third-down scrimmage plays.",
+  "distance": "Yards to go: short 1-3, medium 4-7, long 8+.",
+  "epa_per_play": "Sum of expected points added / scrimmage plays with EPA. Scrimmage plays are passes (incl. sacks) and runs (incl. scrambles), excluding penalties that nullified the play, kneels, spikes, and two-point tries.",
+  "success_rate": "Share of scrimmage plays with positive EPA (the nflverse definition of success, not the 40/60/100% down-based rule)."
+ },
+ "dataset": {
+  "source": "nflverse pbp",
+  "version": "2026-10-10 11:17:28 EDT",
+  "sha256": "3fd2896bc0b911b615142d2f1fabae54a4bbba5ab7b73b28187b118ef8af6a3b",
+  "kind": "public",
+  "id": null,
+  "name": null
+ },
+ "warnings": [],
+ "team": {
+  "abbreviation": "KC",
+  "name": "Kansas City Chiefs"
+ },
+ "sample": {
+  "plays": 1223,
+  "games": 20
+ },
+ "down_distance": [
+  {
+   "down": 1,
+   "distance": "short",
+   "plays": 14,
+   "pass_rate": {
+    "value": 0.2143,
+    "numerator": 3.0,
+    "denominator": 14
+   },
+   "epa_per_play": {
+    "value": 0.1225,
+    "numerator": 1.715,
+    "denominator": 14
+   },
+   "success_rate": {
+    "value": 0.5,
+    "numerator": 7.0,
+    "denominator": 14
+   },
+   "league_pass_rate": {
+    "value": 0.2624,
+    "numerator": 90.0,
+    "denominator": 343
+   }
+  },
+  {
+   "down": 1,
+   "distance": "medium",
+   "plays": 13,
+   "pass_rate": {
+    "value": 0.3846,
+    "numerator": 5.0,
+    "denominator": 13
+   },
+   "epa_per_play": {
+    "value": 0.2553,
+    "numerator": 3.3192,
+    "denominator": 13
+   },
+   "success_rate": {
+    "value": 0.6154,
+    "numerator": 8.0,
+    "denominator": 13
+   },
+   "league_pass_rate": {
+    "value": 0.3363,
+    "numerator": 153.0,
+    "denominator": 455
+   }
+  },
+  {
+   "down": 1,
+   "distance": "long",
+   "plays": 505,
+   "pass_rate": {
+    "value": 0.5149,
+    "numerator": 260.0,
+    "denominator": 505
+   },
+   "epa_per_play": {
+    "value": 0.0288,
+    "numerator": 14.5404,
+    "denominator": 505
+   },
+   "success_rate": {
+    "value": 0.4495,
+    "numerator": 227.0,
+    "denominator": 505
+   },
+   "league_pass_rate": {
+    "value": 0.4794,
+    "numerator": 6962.0,
+    "denominator": 14523
+   }
+  },
+  {
+   "down": 2,
+   "distance": "short",
+   "plays": 76,
+   "pass_rate": {
+    "value": 0.4474,
+    "numerator": 34.0,
+    "denominator": 76
+   },
+   "epa_per_play": {
+    "value": -0.0722,
+    "numerator": -5.4835,
+    "denominator": 76
+   },
+   "success_rate": {
+    "value": 0.6053,
+    "numerator": 46.0,
+    "denominator": 76
+   },
+   "league_pass_rate": {
+    "value": 0.358,
+    "numerator": 691.0,
+    "denominator": 1930
+   }
+  },
+  {
+   "down": 2,
+   "distance": "medium",
+   "plays": 145,
+   "pass_rate": {
+    "value": 0.6138,
+    "numerator": 89.0,
+    "denominator": 145
+   },
+   "epa_per_play": {
+    "value": 0.0987,
+    "numerator": 14.3128,
+    "denominator": 145
+   },
+   "success_rate": {
+    "value": 0.5034,
+    "numerator": 73.0,
+    "denominator": 145
+   },
+   "league_pass_rate": {
+    "value": 0.5291,
+    "numerator": 2003.0,
+    "denominator": 3786
+   }
+  },
+  {
+   "down": 2,
+   "distance": "long",
+   "plays": 194,
+   "pass_rate": {
+    "value": 0.7268,
+    "numerator": 141.0,
+    "denominator": 194
+   },
+   "epa_per_play": {
+    "value": -0.0752,
+    "numerator": -14.5846,
+    "denominator": 194
+   },
+   "success_rate": {
+    "value": 0.3814,
+    "numerator": 74.0,
+    "denominator": 194
+   },
+   "league_pass_rate": {
+    "value": 0.7058,
+    "numerator": 4165.0,
+    "denominator": 5901
+   }
+  },
+  {
+   "down": 3,
+   "distance": "short",
+   "plays": 83,
+   "pass_rate": {
+    "value": 0.5422,
+    "numerator": 45.0,
+    "denominator": 83
+   },
+   "epa_per_play": {
+    "value": -0.021,
+    "numerator": -1.7448,
+    "denominator": 83
+   },
+   "success_rate": {
+    "value": 0.5904,
+    "numerator": 49.0,
+    "denominator": 83
+   },
+   "league_pass_rate": {
+    "value": 0.4771,
+    "numerator": 989.0,
+    "denominator": 2073
+   }
+  },
+  {
+   "down": 3,
+   "distance": "medium",
+   "plays": 78,
+   "pass_rate": {
+    "value": 0.8718,
+    "numerator": 68.0,
+    "denominator": 78
+   },
+   "epa_per_play": {
+    "value": 0.773,
+    "numerator": 60.2932,
+    "denominator": 78
+   },
+   "success_rate": {
+    "value": 0.6282,
+    "numerator": 49.0,
+    "denominator": 78
+   },
+   "league_pass_rate": {
+    "value": 0.8589,
+    "numerator": 1966.0,
+    "denominator": 2289
+   }
+  },
+  {
+   "down": 3,
+   "distance": "long",
+   "plays": 94,
+   "pass_rate": {
+    "value": 0.8617,
+    "numerator": 81.0,
+    "denominator": 94
+   },
+   "epa_per_play": {
+    "value": -0.1292,
+    "numerator": -12.1427,
+    "denominator": 94
+   },
+   "success_rate": {
+    "value": 0.3404,
+    "numerator": 32.0,
+    "denominator": 94
+   },
+   "league_pass_rate": {
+    "value": 0.8576,
+    "numerator": 2390.0,
+    "denominator": 2787
+   }
+  },
+  {
+   "down": 4,
+   "distance": "short",
+   "plays": 16,
+   "pass_rate": {
+    "value": 0.1875,
+    "numerator": 3.0,
+    "denominator": 16
+   },
+   "epa_per_play": {
+    "value": 1.2919,
+    "numerator": 20.6709,
+    "denominator": 16
+   },
+   "success_rate": {
+    "value": 0.8125,
+    "numerator": 13.0,
+    "denominator": 16
+   },
+   "league_pass_rate": {
+    "value": 0.4475,
+    "numerator": 243.0,
+    "denominator": 543
+   }
+  },
+  {
+   "down": 4,
+   "distance": "medium",
+   "plays": 3,
+   "pass_rate": {
+    "value": 1.0,
+    "numerator": 3.0,
+    "denominator": 3
+   },
+   "epa_per_play": {
+    "value": -0.8246,
+    "numerator": -2.4737,
+    "denominator": 3
+   },
+   "success_rate": {
+    "value": 0.3333,
+    "numerator": 1.0,
+    "denominator": 3
+   },
+   "league_pass_rate": {
+    "value": 0.8917,
+    "numerator": 140.0,
+    "denominator": 157
+   }
+  },
+  {
+   "down": 4,
+   "distance": "long",
+   "plays": 2,
+   "pass_rate": {
+    "value": 0.5,
+    "numerator": 1.0,
+    "denominator": 2
+   },
+   "epa_per_play": {
+    "value": -0.9697,
+    "numerator": -1.9395,
+    "denominator": 2
+   },
+   "success_rate": {
+    "value": 0.0,
+    "numerator": 0.0,
+    "denominator": 2
+   },
+   "league_pass_rate": {
+    "value": 0.913,
+    "numerator": 105.0,
+    "denominator": 115
+   }
+  }
+ ],
+ "third_down": {
+  "plays": 255,
+  "games": 20,
+  "conversion_rate": {
+   "value": 0.4824,
+   "numerator": 123.0,
+   "denominator": 255
+  },
+  "converted_by_penalty": 0,
+  "avg_yards_to_go": 6.53,
+  "pass_rate": {
+   "value": 0.7608,
+   "numerator": 194.0,
+   "denominator": 255
+  },
+  "epa_per_play": {
+   "value": 0.182,
+   "numerator": 46.4057,
+   "denominator": 255
+  },
+  "league_conversion_rate": {
+   "value": 0.4036,
+   "numerator": 2885.0,
+   "denominator": 7149
+  },
+  "rank": {
+   "metric": "third_down_conversion_rate",
+   "rank": 3,
+   "of": 32,
+   "better": "higher"
+  },
+  "by_distance": [
+   {
+    "distance": "short",
+    "plays": 83,
+    "conversion_rate": {
+     "value": 0.5904,
+     "numerator": 49.0,
+     "denominator": 83
+    },
+    "league_conversion_rate": {
+     "value": 0.5962,
+     "numerator": 1236.0,
+     "denominator": 2073
+    },
+    "pass_rate": {
+     "value": 0.5422,
+     "numerator": 45.0,
+     "denominator": 83
+    },
+    "epa_per_play": {
+     "value": -0.021,
+     "numerator": -1.7448,
+     "denominator": 83
+    }
+   },
+   {
+    "distance": "medium",
+    "plays": 78,
+    "conversion_rate": {
+     "value": 0.6282,
+     "numerator": 49.0,
+     "denominator": 78
+    },
+    "league_conversion_rate": {
+     "value": 0.4312,
+     "numerator": 987.0,
+     "denominator": 2289
+    },
+    "pass_rate": {
+     "value": 0.8718,
+     "numerator": 68.0,
+     "denominator": 78
+    },
+    "epa_per_play": {
+     "value": 0.773,
+     "numerator": 60.2932,
+     "denominator": 78
+    }
+   },
+   {
+    "distance": "long",
+    "plays": 94,
+    "conversion_rate": {
+     "value": 0.266,
+     "numerator": 25.0,
+     "denominator": 94
+    },
+    "league_conversion_rate": {
+     "value": 0.2375,
+     "numerator": 662.0,
+     "denominator": 2787
+    },
+    "pass_rate": {
+     "value": 0.8617,
+     "numerator": 81.0,
+     "denominator": 94
+    },
+    "epa_per_play": {
+     "value": -0.1292,
+     "numerator": -12.1427,
+     "denominator": 94
+    }
+   }
+  ]
+ }
+}

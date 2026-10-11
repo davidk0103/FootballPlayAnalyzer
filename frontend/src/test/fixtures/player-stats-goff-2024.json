@@ -1,0 +1,131 @@
+{
+ "filters": {
+  "season": 2024,
+  "side": "offense",
+  "season_type": null,
+  "week_min": null,
+  "week_max": null,
+  "opponent": null,
+  "down": null,
+  "distance": null,
+  "field_zone": null,
+  "qtr": null,
+  "score_state": null,
+  "play_type": null,
+  "explosive_run_yards": 10,
+  "explosive_pass_yards": 20
+ },
+ "definitions": {
+  "pass_attempts": "Passes thrown, including spikes, excluding sacks and two-point tries.",
+  "completion_rate": "Completions / pass attempts.",
+  "passing_yards": "Official passing yards (nflverse passing_yards; sack yardage not deducted).",
+  "yards_per_attempt": "Passing yards / pass attempts.",
+  "passing_touchdowns": "Completed passes that ended in a touchdown with no lost fumble.",
+  "sacks": "Times sacked as the passer.",
+  "epa_per_dropback": "EPA / dropbacks (pass attempts plus sacks) with EPA.",
+  "rush_attempts": "Official rushing attempts, including kneels and scrambles.",
+  "rushing_yards": "Official rushing yards (nflverse rushing_yards).",
+  "yards_per_carry": "Rushing yards / rush attempts.",
+  "rushing_touchdowns": "Rushes that ended in a touchdown with no lost fumble.",
+  "epa_per_rush": "EPA / rush attempts with EPA.",
+  "targets": "Pass attempts (not sacks) with this player as the intended receiver.",
+  "receptions": "Completed passes to this player.",
+  "catch_rate": "Receptions / targets.",
+  "receiving_yards": "Official receiving yards (nflverse receiving_yards).",
+  "yards_per_target": "Receiving yards / targets.",
+  "receiving_touchdowns": "Receptions that ended in a touchdown with no lost fumble.",
+  "epa_per_target": "EPA / targets with EPA."
+ },
+ "dataset": {
+  "source": "nflverse pbp",
+  "version": "2026-10-10 11:17:28 EDT",
+  "sha256": "3fd2896bc0b911b615142d2f1fabae54a4bbba5ab7b73b28187b118ef8af6a3b",
+  "kind": "public",
+  "id": null,
+  "name": null
+ },
+ "warnings": [],
+ "player": {
+  "id": "00-0033106",
+  "name": "Jared Goff",
+  "position": "QB"
+ },
+ "teams": [
+  "DET"
+ ],
+ "sample": {
+  "plays": 649,
+  "games": 18
+ },
+ "passing": {
+  "pass_attempts": 579,
+  "completions": 413,
+  "completion_rate": {
+   "value": 0.7133,
+   "numerator": 413.0,
+   "denominator": 579
+  },
+  "passing_yards": 4942,
+  "yards_per_attempt": {
+   "value": 8.54,
+   "numerator": 4942.0,
+   "denominator": 579
+  },
+  "passing_touchdowns": 38,
+  "interceptions": 15,
+  "sacks": 33,
+  "epa_per_dropback": {
+   "value": 0.2467,
+   "numerator": 150.9668,
+   "denominator": 612
+  }
+ },
+ "rushing": {
+  "rush_attempts": 36,
+  "rushing_yards": 63,
+  "yards_per_carry": {
+   "value": 1.75,
+   "numerator": 63.0,
+   "denominator": 36
+  },
+  "rushing_touchdowns": 0,
+  "epa_per_rush": {
+   "value": -0.0402,
+   "numerator": -1.4467,
+   "denominator": 36
+  }
+ },
+ "receiving": {
+  "targets": 1,
+  "receptions": 1,
+  "catch_rate": {
+   "value": 1.0,
+   "numerator": 1.0,
+   "denominator": 1
+  },
+  "receiving_yards": 7,
+  "yards_per_target": {
+   "value": 7.0,
+   "numerator": 7.0,
+   "denominator": 1
+  },
+  "yards_per_reception": {
+   "value": 7.0,
+   "numerator": 7.0,
+   "denominator": 1
+  },
+  "receiving_touchdowns": 1,
+  "epa_per_target": {
+   "value": 1.7241,
+   "numerator": 1.7241,
+   "denominator": 1
+  }
+ },
+ "limitations": [
+  "Totals come from nflverse play-by-play and can differ from official records by a few yards when the league later corrects a play.",
+  "Touchdowns are attributed to the passer/rusher/receiver of a scoring play without a lost fumble; a touchdown after a lateral is credited to the original ball carrier.",
+  "Throwaways without an intended receiver count as pass attempts but not as targets.",
+  "Fumbles are not attributed to individual players in the stored data.",
+  "Only seasons that have been imported are available."
+ ]
+}
