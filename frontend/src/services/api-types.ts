@@ -353,6 +353,157 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/analytics/situational": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Situational Explorer
+         * @description Metrics per situation bucket, with the league average in the same bucket.
+         */
+        get: operations["situational_explorer_api_v1_analytics_situational_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/efficiency": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Efficiency
+         * @description Passing vs rushing efficiency with league averages and the team's EPA rank.
+         */
+        get: operations["efficiency_api_v1_analytics_efficiency_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/analytics/trends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Trends
+         * @description Per-game metrics in schedule order, with that week's league EPA/play.
+         */
+        get: operations["trends_api_v1_analytics_trends_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teams/{team_id}/tendencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Team Tendencies
+         * @description Pass/run frequency by down and distance, plus a third-down breakdown.
+         */
+        get: operations["team_tendencies_api_v1_teams__team_id__tendencies_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/players": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Players */
+        get: operations["list_players_api_v1_players_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/players/{player_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Player */
+        get: operations["get_player_api_v1_players__player_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/players/{player_id}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Player Stats
+         * @description Passing, rushing, and receiving stats from official-stat yardage columns.
+         */
+        get: operations["player_stats_api_v1_players__player_id__stats_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/games/{game_id}/plays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Game Plays */
+        get: operations["game_plays_api_v1_games__game_id__plays_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -401,12 +552,56 @@ export interface components {
             version: string | null;
             /** Sha256 */
             sha256: string;
+            /**
+             * Kind
+             * @default public
+             * @enum {string}
+             */
+            kind: "public" | "upload";
+            /** Id */
+            id?: string | null;
+            /** Name */
+            name?: string | null;
         };
         /**
          * Distance
          * @enum {string}
          */
         Distance: "short" | "medium" | "long";
+        /** EfficiencyResponse */
+        EfficiencyResponse: {
+            filters: components["schemas"]["FiltersOut"];
+            /** Definitions */
+            definitions: {
+                [key: string]: string;
+            };
+            dataset: components["schemas"]["DatasetOut"];
+            /** Warnings */
+            warnings: string[];
+            team: components["schemas"]["TeamKey"];
+            /** Splits */
+            splits: components["schemas"]["EfficiencySplitOut"][];
+        };
+        /** EfficiencySplitOut */
+        EfficiencySplitOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Plays */
+            plays: number;
+            /** Games */
+            games: number;
+            /** Metrics */
+            metrics: {
+                [key: string]: components["schemas"]["MetricOut"];
+            };
+            /** League */
+            league: {
+                [key: string]: components["schemas"]["MetricOut"];
+            };
+            rank: components["schemas"]["RankOut"] | null;
+        };
         /** ErrorBody */
         ErrorBody: {
             /** Code */
@@ -434,11 +629,17 @@ export interface components {
         /** FiltersOut */
         FiltersOut: {
             /** Season */
-            season: number;
+            season: number | null;
             /** Side */
             side: string;
             /** Season Type */
             season_type?: string | null;
+            /** Week Min */
+            week_min?: number | null;
+            /** Week Max */
+            week_max?: number | null;
+            /** Opponent */
+            opponent?: string | null;
             /** Down */
             down?: number[] | null;
             /** Distance */
@@ -447,8 +648,14 @@ export interface components {
             field_zone?: string | null;
             /** Qtr */
             qtr?: number[] | null;
+            /** Score State */
+            score_state?: string | null;
             /** Play Type */
             play_type?: string | null;
+            /** Explosive Run Yards */
+            explosive_run_yards?: number | null;
+            /** Explosive Pass Yards */
+            explosive_pass_yards?: number | null;
         };
         /** GameDetailOut */
         GameDetailOut: {
@@ -497,6 +704,66 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** GamePlayOut */
+        GamePlayOut: {
+            /** Play Id */
+            play_id: number;
+            /** Qtr */
+            qtr: number | null;
+            /** Game Seconds Remaining */
+            game_seconds_remaining: number | null;
+            /** Offense */
+            offense: string | null;
+            /** Defense */
+            defense: string | null;
+            /** Down */
+            down: number | null;
+            /** Yards To Go */
+            yards_to_go: number | null;
+            /** Yard Line 100 */
+            yard_line_100: number | null;
+            /** Score Differential */
+            score_differential: number | null;
+            /** Play Type */
+            play_type: string;
+            /** Yards Gained */
+            yards_gained: number | null;
+            /** Epa */
+            epa: number | null;
+            /** Success */
+            success: boolean | null;
+            /** Touchdown */
+            touchdown: boolean | null;
+            /** Interception */
+            interception: boolean | null;
+            /** Fumble Lost */
+            fumble_lost: boolean | null;
+            /** Penalty */
+            penalty: boolean | null;
+            /** Passer */
+            passer: string | null;
+            /** Rusher */
+            rusher: string | null;
+            /** Receiver */
+            receiver: string | null;
+        };
+        /** GamePlayPage */
+        GamePlayPage: {
+            game: components["schemas"]["GameOut"];
+            /** Items */
+            items: components["schemas"]["GamePlayOut"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * GroupBy
+         * @enum {string}
+         */
+        GroupBy: "down" | "distance" | "field_zone" | "qtr" | "score_state" | "play_type";
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -640,6 +907,89 @@ export interface components {
          * @enum {string}
          */
         PlayType: "pass" | "run";
+        /** PlayerListItem */
+        PlayerListItem: {
+            /**
+             * Id
+             * @description Stable nflverse GSIS player id, e.g. 00-0034796
+             */
+            id: string;
+            /** Name */
+            name: string | null;
+            /** Position */
+            position: string | null;
+            /**
+             * Season Plays
+             * @description Plays as passer, rusher, or target in the season filter
+             */
+            season_plays?: number | null;
+        };
+        /** PlayerOut */
+        PlayerOut: {
+            /**
+             * Id
+             * @description Stable nflverse GSIS player id, e.g. 00-0034796
+             */
+            id: string;
+            /** Name */
+            name: string | null;
+            /** Position */
+            position: string | null;
+        };
+        /** PlayerPage */
+        PlayerPage: {
+            /** Items */
+            items: components["schemas"]["PlayerListItem"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /** PlayerStatsResponse */
+        PlayerStatsResponse: {
+            filters: components["schemas"]["FiltersOut"];
+            /** Definitions */
+            definitions: {
+                [key: string]: string;
+            };
+            dataset: components["schemas"]["DatasetOut"];
+            /** Warnings */
+            warnings: string[];
+            player: components["schemas"]["PlayerOut"];
+            /** Teams */
+            teams: string[];
+            sample: components["schemas"]["SampleOut"];
+            /** Passing */
+            passing: {
+                [key: string]: number | components["schemas"]["MetricOut"];
+            };
+            /** Rushing */
+            rushing: {
+                [key: string]: number | components["schemas"]["MetricOut"];
+            };
+            /** Receiving */
+            receiving: {
+                [key: string]: number | components["schemas"]["MetricOut"];
+            };
+            /** Limitations */
+            limitations: string[];
+        };
+        /** RankOut */
+        RankOut: {
+            /** Metric */
+            metric: string;
+            /** Rank */
+            rank: number;
+            /** Of */
+            of: number;
+            /**
+             * Better
+             * @enum {string}
+             */
+            better: "higher" | "lower";
+        };
         /** ReadinessOut */
         ReadinessOut: {
             /** Status */
@@ -656,6 +1006,12 @@ export interface components {
             /** Games */
             games: number;
         };
+        /**
+         * ScoreState
+         * @description Score margin from the selected team's perspective (one score = up to 8 points).
+         * @enum {string}
+         */
+        ScoreState: "trailing_9plus" | "trailing_1_8" | "tied" | "leading_1_8" | "leading_9plus";
         /** SeasonOut */
         SeasonOut: {
             /** Season */
@@ -679,6 +1035,42 @@ export interface components {
          * @enum {string}
          */
         Side: "offense" | "defense";
+        /** SituationRowOut */
+        SituationRowOut: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Plays */
+            plays: number;
+            /** Games */
+            games: number;
+            /** Metrics */
+            metrics: {
+                [key: string]: components["schemas"]["MetricOut"];
+            };
+            /** League */
+            league: {
+                [key: string]: components["schemas"]["MetricOut"];
+            } | null;
+        };
+        /** SituationalResponse */
+        SituationalResponse: {
+            filters: components["schemas"]["FiltersOut"];
+            /** Definitions */
+            definitions: {
+                [key: string]: string;
+            };
+            dataset: components["schemas"]["DatasetOut"];
+            /** Warnings */
+            warnings: string[];
+            team: components["schemas"]["TeamKey"] | null;
+            /** Group By */
+            group_by: string;
+            overall: components["schemas"]["SituationRowOut"];
+            /** Rows */
+            rows: components["schemas"]["SituationRowOut"][];
+        };
         /** TeamComparisonResponse */
         TeamComparisonResponse: {
             filters: components["schemas"]["FiltersOut"];
@@ -691,6 +1083,16 @@ export interface components {
             dataset: components["schemas"]["DatasetOut"];
             /** Warnings */
             warnings: string[];
+        };
+        /**
+         * TeamKey
+         * @description A team as named in the dataset (public datasets also carry the full name).
+         */
+        TeamKey: {
+            /** Abbreviation */
+            abbreviation: string;
+            /** Name */
+            name?: string | null;
         };
         /** TeamOut */
         TeamOut: {
@@ -735,6 +1137,97 @@ export interface components {
                 [key: string]: string;
             };
             dataset: components["schemas"]["DatasetOut"];
+        };
+        /** TendenciesResponse */
+        TendenciesResponse: {
+            filters: components["schemas"]["FiltersOut"];
+            /** Definitions */
+            definitions: {
+                [key: string]: string;
+            };
+            dataset: components["schemas"]["DatasetOut"];
+            /** Warnings */
+            warnings: string[];
+            team: components["schemas"]["TeamKey"];
+            sample: components["schemas"]["SampleOut"];
+            /** Down Distance */
+            down_distance: components["schemas"]["TendencyCellOut"][];
+            third_down: components["schemas"]["ThirdDownOut"];
+        };
+        /** TendencyCellOut */
+        TendencyCellOut: {
+            /** Down */
+            down: number;
+            /** Distance */
+            distance: string;
+            /** Plays */
+            plays: number;
+            pass_rate: components["schemas"]["MetricOut"];
+            epa_per_play: components["schemas"]["MetricOut"];
+            success_rate: components["schemas"]["MetricOut"];
+            league_pass_rate: components["schemas"]["MetricOut"];
+        };
+        /** ThirdDownBucketOut */
+        ThirdDownBucketOut: {
+            /** Distance */
+            distance: string;
+            /** Plays */
+            plays: number;
+            conversion_rate: components["schemas"]["MetricOut"];
+            league_conversion_rate: components["schemas"]["MetricOut"];
+            pass_rate: components["schemas"]["MetricOut"];
+            epa_per_play: components["schemas"]["MetricOut"];
+        };
+        /** ThirdDownOut */
+        ThirdDownOut: {
+            /** Plays */
+            plays: number;
+            /** Games */
+            games: number;
+            conversion_rate: components["schemas"]["MetricOut"];
+            /** Converted By Penalty */
+            converted_by_penalty: number;
+            /** Avg Yards To Go */
+            avg_yards_to_go: number | null;
+            pass_rate: components["schemas"]["MetricOut"];
+            epa_per_play: components["schemas"]["MetricOut"];
+            league_conversion_rate: components["schemas"]["MetricOut"];
+            rank: components["schemas"]["RankOut"] | null;
+            /** By Distance */
+            by_distance: components["schemas"]["ThirdDownBucketOut"][];
+        };
+        /** TrendPointOut */
+        TrendPointOut: {
+            /** Game Key */
+            game_key: string;
+            /** Week */
+            week: number | null;
+            /** Season Type */
+            season_type: string | null;
+            /** Opponent */
+            opponent: string | null;
+            /** Plays */
+            plays: number;
+            /** Metrics */
+            metrics: {
+                [key: string]: components["schemas"]["MetricOut"];
+            };
+            /** League Epa Per Play */
+            league_epa_per_play: number | null;
+        };
+        /** TrendsResponse */
+        TrendsResponse: {
+            filters: components["schemas"]["FiltersOut"];
+            /** Definitions */
+            definitions: {
+                [key: string]: string;
+            };
+            dataset: components["schemas"]["DatasetOut"];
+            /** Warnings */
+            warnings: string[];
+            team: components["schemas"]["TeamKey"];
+            /** Games */
+            games: components["schemas"]["TrendPointOut"][];
         };
         /** UserOut */
         UserOut: {
@@ -1196,15 +1689,21 @@ export interface operations {
     };
     team_stats_api_v1_teams__team_id__stats_get: {
         parameters: {
-            query: {
+            query?: {
                 /** @description Skip the analytics cache and compute fresh (response is not cached) */
                 no_cache?: boolean;
-                /** @description Season year, e.g. 2024 */
-                season: number;
+                /** @description Season year, e.g. 2024. Required for public data; optional for uploads. */
+                season?: number | null;
                 /** @description Team's plays on offense or allowed on defense */
                 side?: components["schemas"]["Side"];
                 /** @description REG or POST */
                 season_type?: components["schemas"]["SeasonType"] | null;
+                /** @description First week (inclusive) */
+                week_min?: number | null;
+                /** @description Last week (inclusive) */
+                week_max?: number | null;
+                /** @description Opponent abbreviation, e.g. KC */
+                opponent?: string | null;
                 /** @description Down(s) 1-4 */
                 down?: number[] | null;
                 /** @description Yards to go: short 1-3, medium 4-7, long 8+ */
@@ -1213,8 +1712,14 @@ export interface operations {
                 field_zone?: components["schemas"]["FieldZone"] | null;
                 /** @description Quarter(s) 1-5 (5 = overtime) */
                 qtr?: number[] | null;
+                /** @description Score margin from the team's perspective (one score = 1-8 points) */
+                score_state?: components["schemas"]["ScoreState"] | null;
                 /** @description pass or run */
                 play_type?: components["schemas"]["PlayType"] | null;
+                /** @description Configurable: runs of this many yards are explosive */
+                explosive_run_yards?: number;
+                /** @description Configurable: passes of this many yards are explosive */
+                explosive_pass_yards?: number;
             };
             header?: never;
             path: {
@@ -1347,12 +1852,18 @@ export interface operations {
                 team_b: string;
                 /** @description Skip the analytics cache and compute fresh (response is not cached) */
                 no_cache?: boolean;
-                /** @description Season year, e.g. 2024 */
-                season: number;
+                /** @description Season year, e.g. 2024. Required for public data; optional for uploads. */
+                season?: number | null;
                 /** @description Team's plays on offense or allowed on defense */
                 side?: components["schemas"]["Side"];
                 /** @description REG or POST */
                 season_type?: components["schemas"]["SeasonType"] | null;
+                /** @description First week (inclusive) */
+                week_min?: number | null;
+                /** @description Last week (inclusive) */
+                week_max?: number | null;
+                /** @description Opponent abbreviation, e.g. KC */
+                opponent?: string | null;
                 /** @description Down(s) 1-4 */
                 down?: number[] | null;
                 /** @description Yards to go: short 1-3, medium 4-7, long 8+ */
@@ -1361,8 +1872,14 @@ export interface operations {
                 field_zone?: components["schemas"]["FieldZone"] | null;
                 /** @description Quarter(s) 1-5 (5 = overtime) */
                 qtr?: number[] | null;
+                /** @description Score margin from the team's perspective (one score = 1-8 points) */
+                score_state?: components["schemas"]["ScoreState"] | null;
                 /** @description pass or run */
                 play_type?: components["schemas"]["PlayType"] | null;
+                /** @description Configurable: runs of this many yards are explosive */
+                explosive_run_yards?: number;
+                /** @description Configurable: passes of this many yards are explosive */
+                explosive_pass_yards?: number;
             };
             header?: never;
             path?: never;
@@ -1681,6 +2198,486 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    situational_explorer_api_v1_analytics_situational_get: {
+        parameters: {
+            query?: {
+                /** @description Dimension to split plays by */
+                group_by?: components["schemas"]["GroupBy"];
+                /** @description Team abbreviation; omit for the whole league */
+                team?: string | null;
+                /** @description Skip the analytics cache and compute fresh (response is not cached) */
+                no_cache?: boolean;
+                /** @description Season year, e.g. 2024. Required for public data; optional for uploads. */
+                season?: number | null;
+                /** @description Team's plays on offense or allowed on defense */
+                side?: components["schemas"]["Side"];
+                /** @description REG or POST */
+                season_type?: components["schemas"]["SeasonType"] | null;
+                /** @description First week (inclusive) */
+                week_min?: number | null;
+                /** @description Last week (inclusive) */
+                week_max?: number | null;
+                /** @description Opponent abbreviation, e.g. KC */
+                opponent?: string | null;
+                /** @description Down(s) 1-4 */
+                down?: number[] | null;
+                /** @description Yards to go: short 1-3, medium 4-7, long 8+ */
+                distance?: components["schemas"]["Distance"] | null;
+                /** @description yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20 */
+                field_zone?: components["schemas"]["FieldZone"] | null;
+                /** @description Quarter(s) 1-5 (5 = overtime) */
+                qtr?: number[] | null;
+                /** @description Score margin from the team's perspective (one score = 1-8 points) */
+                score_state?: components["schemas"]["ScoreState"] | null;
+                /** @description pass or run */
+                play_type?: components["schemas"]["PlayType"] | null;
+                /** @description Configurable: runs of this many yards are explosive */
+                explosive_run_yards?: number;
+                /** @description Configurable: passes of this many yards are explosive */
+                explosive_pass_yards?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SituationalResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    efficiency_api_v1_analytics_efficiency_get: {
+        parameters: {
+            query: {
+                /** @description Team abbreviation (or id for public data) */
+                team: string;
+                /** @description Skip the analytics cache and compute fresh (response is not cached) */
+                no_cache?: boolean;
+                /** @description Season year, e.g. 2024. Required for public data; optional for uploads. */
+                season?: number | null;
+                /** @description Team's plays on offense or allowed on defense */
+                side?: components["schemas"]["Side"];
+                /** @description REG or POST */
+                season_type?: components["schemas"]["SeasonType"] | null;
+                /** @description First week (inclusive) */
+                week_min?: number | null;
+                /** @description Last week (inclusive) */
+                week_max?: number | null;
+                /** @description Opponent abbreviation, e.g. KC */
+                opponent?: string | null;
+                /** @description Down(s) 1-4 */
+                down?: number[] | null;
+                /** @description Yards to go: short 1-3, medium 4-7, long 8+ */
+                distance?: components["schemas"]["Distance"] | null;
+                /** @description yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20 */
+                field_zone?: components["schemas"]["FieldZone"] | null;
+                /** @description Quarter(s) 1-5 (5 = overtime) */
+                qtr?: number[] | null;
+                /** @description Score margin from the team's perspective (one score = 1-8 points) */
+                score_state?: components["schemas"]["ScoreState"] | null;
+                /** @description pass or run */
+                play_type?: components["schemas"]["PlayType"] | null;
+                /** @description Configurable: runs of this many yards are explosive */
+                explosive_run_yards?: number;
+                /** @description Configurable: passes of this many yards are explosive */
+                explosive_pass_yards?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EfficiencyResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    trends_api_v1_analytics_trends_get: {
+        parameters: {
+            query: {
+                /** @description Team abbreviation (or id for public data) */
+                team: string;
+                /** @description Skip the analytics cache and compute fresh (response is not cached) */
+                no_cache?: boolean;
+                /** @description Season year, e.g. 2024. Required for public data; optional for uploads. */
+                season?: number | null;
+                /** @description Team's plays on offense or allowed on defense */
+                side?: components["schemas"]["Side"];
+                /** @description REG or POST */
+                season_type?: components["schemas"]["SeasonType"] | null;
+                /** @description First week (inclusive) */
+                week_min?: number | null;
+                /** @description Last week (inclusive) */
+                week_max?: number | null;
+                /** @description Opponent abbreviation, e.g. KC */
+                opponent?: string | null;
+                /** @description Down(s) 1-4 */
+                down?: number[] | null;
+                /** @description Yards to go: short 1-3, medium 4-7, long 8+ */
+                distance?: components["schemas"]["Distance"] | null;
+                /** @description yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20 */
+                field_zone?: components["schemas"]["FieldZone"] | null;
+                /** @description Quarter(s) 1-5 (5 = overtime) */
+                qtr?: number[] | null;
+                /** @description Score margin from the team's perspective (one score = 1-8 points) */
+                score_state?: components["schemas"]["ScoreState"] | null;
+                /** @description pass or run */
+                play_type?: components["schemas"]["PlayType"] | null;
+                /** @description Configurable: runs of this many yards are explosive */
+                explosive_run_yards?: number;
+                /** @description Configurable: passes of this many yards are explosive */
+                explosive_pass_yards?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendsResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    team_tendencies_api_v1_teams__team_id__tendencies_get: {
+        parameters: {
+            query?: {
+                /** @description Skip the analytics cache and compute fresh (response is not cached) */
+                no_cache?: boolean;
+                /** @description Season year, e.g. 2024. Required for public data; optional for uploads. */
+                season?: number | null;
+                /** @description Team's plays on offense or allowed on defense */
+                side?: components["schemas"]["Side"];
+                /** @description REG or POST */
+                season_type?: components["schemas"]["SeasonType"] | null;
+                /** @description First week (inclusive) */
+                week_min?: number | null;
+                /** @description Last week (inclusive) */
+                week_max?: number | null;
+                /** @description Opponent abbreviation, e.g. KC */
+                opponent?: string | null;
+                /** @description Down(s) 1-4 */
+                down?: number[] | null;
+                /** @description Yards to go: short 1-3, medium 4-7, long 8+ */
+                distance?: components["schemas"]["Distance"] | null;
+                /** @description yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20 */
+                field_zone?: components["schemas"]["FieldZone"] | null;
+                /** @description Quarter(s) 1-5 (5 = overtime) */
+                qtr?: number[] | null;
+                /** @description Score margin from the team's perspective (one score = 1-8 points) */
+                score_state?: components["schemas"]["ScoreState"] | null;
+                /** @description pass or run */
+                play_type?: components["schemas"]["PlayType"] | null;
+            };
+            header?: never;
+            path: {
+                team_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TendenciesResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_players_api_v1_players_get: {
+        parameters: {
+            query?: {
+                search?: string | null;
+                /** @description Only players involved in this season */
+                season?: number | null;
+                /** @description e.g. QB, RB, WR */
+                position?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayerPage"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_player_api_v1_players__player_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                player_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayerOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    player_stats_api_v1_players__player_id__stats_get: {
+        parameters: {
+            query?: {
+                /** @description Skip the analytics cache and compute fresh (response is not cached) */
+                no_cache?: boolean;
+                /** @description Season year, e.g. 2024. Required for public data; optional for uploads. */
+                season?: number | null;
+                /** @description Team's plays on offense or allowed on defense */
+                side?: components["schemas"]["Side"];
+                /** @description REG or POST */
+                season_type?: components["schemas"]["SeasonType"] | null;
+                /** @description First week (inclusive) */
+                week_min?: number | null;
+                /** @description Last week (inclusive) */
+                week_max?: number | null;
+                /** @description Opponent abbreviation, e.g. KC */
+                opponent?: string | null;
+                /** @description Down(s) 1-4 */
+                down?: number[] | null;
+                /** @description Yards to go: short 1-3, medium 4-7, long 8+ */
+                distance?: components["schemas"]["Distance"] | null;
+                /** @description yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20 */
+                field_zone?: components["schemas"]["FieldZone"] | null;
+                /** @description Quarter(s) 1-5 (5 = overtime) */
+                qtr?: number[] | null;
+                /** @description Score margin from the team's perspective (one score = 1-8 points) */
+                score_state?: components["schemas"]["ScoreState"] | null;
+                /** @description pass or run */
+                play_type?: components["schemas"]["PlayType"] | null;
+            };
+            header?: never;
+            path: {
+                player_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayerStatsResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    game_plays_api_v1_games__game_id__plays_get: {
+        parameters: {
+            query?: {
+                /** @description e.g. pass, run, punt */
+                play_type?: string | null;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                game_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GamePlayPage"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

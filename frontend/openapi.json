@@ -515,15 +515,22 @@
           {
             "name": "season",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": "integer",
-              "maximum": 2100,
-              "minimum": 1999,
-              "description": "Season year, e.g. 2024",
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 1999
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Season year, e.g. 2024. Required for public data; optional for uploads.",
               "title": "Season"
             },
-            "description": "Season year, e.g. 2024"
+            "description": "Season year, e.g. 2024. Required for public data; optional for uploads."
           },
           {
             "name": "side",
@@ -553,6 +560,66 @@
               "title": "Season Type"
             },
             "description": "REG or POST"
+          },
+          {
+            "name": "week_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First week (inclusive)",
+              "title": "Week Min"
+            },
+            "description": "First week (inclusive)"
+          },
+          {
+            "name": "week_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last week (inclusive)",
+              "title": "Week Max"
+            },
+            "description": "Last week (inclusive)"
+          },
+          {
+            "name": "opponent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 5
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opponent abbreviation, e.g. KC",
+              "title": "Opponent"
+            },
+            "description": "Opponent abbreviation, e.g. KC"
           },
           {
             "name": "down",
@@ -633,6 +700,24 @@
             "description": "Quarter(s) 1-5 (5 = overtime)"
           },
           {
+            "name": "score_state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ScoreState"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Score margin from the team's perspective (one score = 1-8 points)",
+              "title": "Score State"
+            },
+            "description": "Score margin from the team's perspective (one score = 1-8 points)"
+          },
+          {
             "name": "play_type",
             "in": "query",
             "required": false,
@@ -649,6 +734,34 @@
               "title": "Play Type"
             },
             "description": "pass or run"
+          },
+          {
+            "name": "explosive_run_yards",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 5,
+              "description": "Configurable: runs of this many yards are explosive",
+              "default": 10,
+              "title": "Explosive Run Yards"
+            },
+            "description": "Configurable: runs of this many yards are explosive"
+          },
+          {
+            "name": "explosive_pass_yards",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 60,
+              "minimum": 10,
+              "description": "Configurable: passes of this many yards are explosive",
+              "default": 20,
+              "title": "Explosive Pass Yards"
+            },
+            "description": "Configurable: passes of this many yards are explosive"
           }
         ],
         "responses": {
@@ -902,15 +1015,22 @@
           {
             "name": "season",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": "integer",
-              "maximum": 2100,
-              "minimum": 1999,
-              "description": "Season year, e.g. 2024",
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 1999
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Season year, e.g. 2024. Required for public data; optional for uploads.",
               "title": "Season"
             },
-            "description": "Season year, e.g. 2024"
+            "description": "Season year, e.g. 2024. Required for public data; optional for uploads."
           },
           {
             "name": "side",
@@ -940,6 +1060,66 @@
               "title": "Season Type"
             },
             "description": "REG or POST"
+          },
+          {
+            "name": "week_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First week (inclusive)",
+              "title": "Week Min"
+            },
+            "description": "First week (inclusive)"
+          },
+          {
+            "name": "week_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last week (inclusive)",
+              "title": "Week Max"
+            },
+            "description": "Last week (inclusive)"
+          },
+          {
+            "name": "opponent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 5
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opponent abbreviation, e.g. KC",
+              "title": "Opponent"
+            },
+            "description": "Opponent abbreviation, e.g. KC"
           },
           {
             "name": "down",
@@ -1020,6 +1200,24 @@
             "description": "Quarter(s) 1-5 (5 = overtime)"
           },
           {
+            "name": "score_state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ScoreState"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Score margin from the team's perspective (one score = 1-8 points)",
+              "title": "Score State"
+            },
+            "description": "Score margin from the team's perspective (one score = 1-8 points)"
+          },
+          {
             "name": "play_type",
             "in": "query",
             "required": false,
@@ -1036,6 +1234,34 @@
               "title": "Play Type"
             },
             "description": "pass or run"
+          },
+          {
+            "name": "explosive_run_yards",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 5,
+              "description": "Configurable: runs of this many yards are explosive",
+              "default": 10,
+              "title": "Explosive Run Yards"
+            },
+            "description": "Configurable: runs of this many yards are explosive"
+          },
+          {
+            "name": "explosive_pass_yards",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 60,
+              "minimum": 10,
+              "description": "Configurable: passes of this many yards are explosive",
+              "default": 20,
+              "title": "Explosive Pass Yards"
+            },
+            "description": "Configurable: passes of this many yards are explosive"
           }
         ],
         "responses": {
@@ -1508,6 +1734,1823 @@
           }
         }
       }
+    },
+    "/api/v1/analytics/situational": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Situational Explorer",
+        "description": "Metrics per situation bucket, with the league average in the same bucket.",
+        "operationId": "situational_explorer_api_v1_analytics_situational_get",
+        "parameters": [
+          {
+            "name": "group_by",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/GroupBy",
+              "description": "Dimension to split plays by",
+              "default": "down"
+            },
+            "description": "Dimension to split plays by"
+          },
+          {
+            "name": "team",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Team abbreviation; omit for the whole league",
+              "title": "Team"
+            },
+            "description": "Team abbreviation; omit for the whole league"
+          },
+          {
+            "name": "no_cache",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Skip the analytics cache and compute fresh (response is not cached)",
+              "default": false,
+              "title": "No Cache"
+            },
+            "description": "Skip the analytics cache and compute fresh (response is not cached)"
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 1999
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Season year, e.g. 2024. Required for public data; optional for uploads.",
+              "title": "Season"
+            },
+            "description": "Season year, e.g. 2024. Required for public data; optional for uploads."
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Side",
+              "description": "Team's plays on offense or allowed on defense",
+              "default": "offense"
+            },
+            "description": "Team's plays on offense or allowed on defense"
+          },
+          {
+            "name": "season_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SeasonType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "REG or POST",
+              "title": "Season Type"
+            },
+            "description": "REG or POST"
+          },
+          {
+            "name": "week_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First week (inclusive)",
+              "title": "Week Min"
+            },
+            "description": "First week (inclusive)"
+          },
+          {
+            "name": "week_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last week (inclusive)",
+              "title": "Week Max"
+            },
+            "description": "Last week (inclusive)"
+          },
+          {
+            "name": "opponent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 5
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opponent abbreviation, e.g. KC",
+              "title": "Opponent"
+            },
+            "description": "Opponent abbreviation, e.g. KC"
+          },
+          {
+            "name": "down",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Down(s) 1-4",
+              "title": "Down"
+            },
+            "description": "Down(s) 1-4"
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Distance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Yards to go: short 1-3, medium 4-7, long 8+",
+              "title": "Distance"
+            },
+            "description": "Yards to go: short 1-3, medium 4-7, long 8+"
+          },
+          {
+            "name": "field_zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FieldZone"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20",
+              "title": "Field Zone"
+            },
+            "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20"
+          },
+          {
+            "name": "qtr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Quarter(s) 1-5 (5 = overtime)",
+              "title": "Qtr"
+            },
+            "description": "Quarter(s) 1-5 (5 = overtime)"
+          },
+          {
+            "name": "score_state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ScoreState"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Score margin from the team's perspective (one score = 1-8 points)",
+              "title": "Score State"
+            },
+            "description": "Score margin from the team's perspective (one score = 1-8 points)"
+          },
+          {
+            "name": "play_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PlayType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "pass or run",
+              "title": "Play Type"
+            },
+            "description": "pass or run"
+          },
+          {
+            "name": "explosive_run_yards",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 5,
+              "description": "Configurable: runs of this many yards are explosive",
+              "default": 10,
+              "title": "Explosive Run Yards"
+            },
+            "description": "Configurable: runs of this many yards are explosive"
+          },
+          {
+            "name": "explosive_pass_yards",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 60,
+              "minimum": 10,
+              "description": "Configurable: passes of this many yards are explosive",
+              "default": 20,
+              "title": "Explosive Pass Yards"
+            },
+            "description": "Configurable: passes of this many yards are explosive"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SituationalResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/analytics/efficiency": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Efficiency",
+        "description": "Passing vs rushing efficiency with league averages and the team's EPA rank.",
+        "operationId": "efficiency_api_v1_analytics_efficiency_get",
+        "parameters": [
+          {
+            "name": "team",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Team abbreviation (or id for public data)",
+              "title": "Team"
+            },
+            "description": "Team abbreviation (or id for public data)"
+          },
+          {
+            "name": "no_cache",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Skip the analytics cache and compute fresh (response is not cached)",
+              "default": false,
+              "title": "No Cache"
+            },
+            "description": "Skip the analytics cache and compute fresh (response is not cached)"
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 1999
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Season year, e.g. 2024. Required for public data; optional for uploads.",
+              "title": "Season"
+            },
+            "description": "Season year, e.g. 2024. Required for public data; optional for uploads."
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Side",
+              "description": "Team's plays on offense or allowed on defense",
+              "default": "offense"
+            },
+            "description": "Team's plays on offense or allowed on defense"
+          },
+          {
+            "name": "season_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SeasonType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "REG or POST",
+              "title": "Season Type"
+            },
+            "description": "REG or POST"
+          },
+          {
+            "name": "week_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First week (inclusive)",
+              "title": "Week Min"
+            },
+            "description": "First week (inclusive)"
+          },
+          {
+            "name": "week_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last week (inclusive)",
+              "title": "Week Max"
+            },
+            "description": "Last week (inclusive)"
+          },
+          {
+            "name": "opponent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 5
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opponent abbreviation, e.g. KC",
+              "title": "Opponent"
+            },
+            "description": "Opponent abbreviation, e.g. KC"
+          },
+          {
+            "name": "down",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Down(s) 1-4",
+              "title": "Down"
+            },
+            "description": "Down(s) 1-4"
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Distance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Yards to go: short 1-3, medium 4-7, long 8+",
+              "title": "Distance"
+            },
+            "description": "Yards to go: short 1-3, medium 4-7, long 8+"
+          },
+          {
+            "name": "field_zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FieldZone"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20",
+              "title": "Field Zone"
+            },
+            "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20"
+          },
+          {
+            "name": "qtr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Quarter(s) 1-5 (5 = overtime)",
+              "title": "Qtr"
+            },
+            "description": "Quarter(s) 1-5 (5 = overtime)"
+          },
+          {
+            "name": "score_state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ScoreState"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Score margin from the team's perspective (one score = 1-8 points)",
+              "title": "Score State"
+            },
+            "description": "Score margin from the team's perspective (one score = 1-8 points)"
+          },
+          {
+            "name": "play_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PlayType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "pass or run",
+              "title": "Play Type"
+            },
+            "description": "pass or run"
+          },
+          {
+            "name": "explosive_run_yards",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 5,
+              "description": "Configurable: runs of this many yards are explosive",
+              "default": 10,
+              "title": "Explosive Run Yards"
+            },
+            "description": "Configurable: runs of this many yards are explosive"
+          },
+          {
+            "name": "explosive_pass_yards",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 60,
+              "minimum": 10,
+              "description": "Configurable: passes of this many yards are explosive",
+              "default": 20,
+              "title": "Explosive Pass Yards"
+            },
+            "description": "Configurable: passes of this many yards are explosive"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EfficiencyResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/analytics/trends": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Trends",
+        "description": "Per-game metrics in schedule order, with that week's league EPA/play.",
+        "operationId": "trends_api_v1_analytics_trends_get",
+        "parameters": [
+          {
+            "name": "team",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Team abbreviation (or id for public data)",
+              "title": "Team"
+            },
+            "description": "Team abbreviation (or id for public data)"
+          },
+          {
+            "name": "no_cache",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Skip the analytics cache and compute fresh (response is not cached)",
+              "default": false,
+              "title": "No Cache"
+            },
+            "description": "Skip the analytics cache and compute fresh (response is not cached)"
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 1999
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Season year, e.g. 2024. Required for public data; optional for uploads.",
+              "title": "Season"
+            },
+            "description": "Season year, e.g. 2024. Required for public data; optional for uploads."
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Side",
+              "description": "Team's plays on offense or allowed on defense",
+              "default": "offense"
+            },
+            "description": "Team's plays on offense or allowed on defense"
+          },
+          {
+            "name": "season_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SeasonType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "REG or POST",
+              "title": "Season Type"
+            },
+            "description": "REG or POST"
+          },
+          {
+            "name": "week_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First week (inclusive)",
+              "title": "Week Min"
+            },
+            "description": "First week (inclusive)"
+          },
+          {
+            "name": "week_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last week (inclusive)",
+              "title": "Week Max"
+            },
+            "description": "Last week (inclusive)"
+          },
+          {
+            "name": "opponent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 5
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opponent abbreviation, e.g. KC",
+              "title": "Opponent"
+            },
+            "description": "Opponent abbreviation, e.g. KC"
+          },
+          {
+            "name": "down",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Down(s) 1-4",
+              "title": "Down"
+            },
+            "description": "Down(s) 1-4"
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Distance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Yards to go: short 1-3, medium 4-7, long 8+",
+              "title": "Distance"
+            },
+            "description": "Yards to go: short 1-3, medium 4-7, long 8+"
+          },
+          {
+            "name": "field_zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FieldZone"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20",
+              "title": "Field Zone"
+            },
+            "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20"
+          },
+          {
+            "name": "qtr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Quarter(s) 1-5 (5 = overtime)",
+              "title": "Qtr"
+            },
+            "description": "Quarter(s) 1-5 (5 = overtime)"
+          },
+          {
+            "name": "score_state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ScoreState"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Score margin from the team's perspective (one score = 1-8 points)",
+              "title": "Score State"
+            },
+            "description": "Score margin from the team's perspective (one score = 1-8 points)"
+          },
+          {
+            "name": "play_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PlayType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "pass or run",
+              "title": "Play Type"
+            },
+            "description": "pass or run"
+          },
+          {
+            "name": "explosive_run_yards",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 50,
+              "minimum": 5,
+              "description": "Configurable: runs of this many yards are explosive",
+              "default": 10,
+              "title": "Explosive Run Yards"
+            },
+            "description": "Configurable: runs of this many yards are explosive"
+          },
+          {
+            "name": "explosive_pass_yards",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 60,
+              "minimum": 10,
+              "description": "Configurable: passes of this many yards are explosive",
+              "default": 20,
+              "title": "Explosive Pass Yards"
+            },
+            "description": "Configurable: passes of this many yards are explosive"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/teams/{team_id}/tendencies": {
+      "get": {
+        "tags": [
+          "analytics"
+        ],
+        "summary": "Team Tendencies",
+        "description": "Pass/run frequency by down and distance, plus a third-down breakdown.",
+        "operationId": "team_tendencies_api_v1_teams__team_id__tendencies_get",
+        "parameters": [
+          {
+            "name": "team_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Team Id"
+            }
+          },
+          {
+            "name": "no_cache",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Skip the analytics cache and compute fresh (response is not cached)",
+              "default": false,
+              "title": "No Cache"
+            },
+            "description": "Skip the analytics cache and compute fresh (response is not cached)"
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 1999
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Season year, e.g. 2024. Required for public data; optional for uploads.",
+              "title": "Season"
+            },
+            "description": "Season year, e.g. 2024. Required for public data; optional for uploads."
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Side",
+              "description": "Team's plays on offense or allowed on defense",
+              "default": "offense"
+            },
+            "description": "Team's plays on offense or allowed on defense"
+          },
+          {
+            "name": "season_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SeasonType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "REG or POST",
+              "title": "Season Type"
+            },
+            "description": "REG or POST"
+          },
+          {
+            "name": "week_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First week (inclusive)",
+              "title": "Week Min"
+            },
+            "description": "First week (inclusive)"
+          },
+          {
+            "name": "week_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last week (inclusive)",
+              "title": "Week Max"
+            },
+            "description": "Last week (inclusive)"
+          },
+          {
+            "name": "opponent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 5
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opponent abbreviation, e.g. KC",
+              "title": "Opponent"
+            },
+            "description": "Opponent abbreviation, e.g. KC"
+          },
+          {
+            "name": "down",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Down(s) 1-4",
+              "title": "Down"
+            },
+            "description": "Down(s) 1-4"
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Distance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Yards to go: short 1-3, medium 4-7, long 8+",
+              "title": "Distance"
+            },
+            "description": "Yards to go: short 1-3, medium 4-7, long 8+"
+          },
+          {
+            "name": "field_zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FieldZone"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20",
+              "title": "Field Zone"
+            },
+            "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20"
+          },
+          {
+            "name": "qtr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Quarter(s) 1-5 (5 = overtime)",
+              "title": "Qtr"
+            },
+            "description": "Quarter(s) 1-5 (5 = overtime)"
+          },
+          {
+            "name": "score_state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ScoreState"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Score margin from the team's perspective (one score = 1-8 points)",
+              "title": "Score State"
+            },
+            "description": "Score margin from the team's perspective (one score = 1-8 points)"
+          },
+          {
+            "name": "play_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PlayType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "pass or run",
+              "title": "Play Type"
+            },
+            "description": "pass or run"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TendenciesResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/players": {
+      "get": {
+        "tags": [
+          "players"
+        ],
+        "summary": "List Players",
+        "operationId": "list_players_api_v1_players_get",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 60
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 1999
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Only players involved in this season",
+              "title": "Season"
+            },
+            "description": "Only players involved in this season"
+          },
+          {
+            "name": "position",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 5
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "e.g. QB, RB, WR",
+              "title": "Position"
+            },
+            "description": "e.g. QB, RB, WR"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 25,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerPage"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/players/{player_id}": {
+      "get": {
+        "tags": [
+          "players"
+        ],
+        "summary": "Get Player",
+        "operationId": "get_player_api_v1_players__player_id__get",
+        "parameters": [
+          {
+            "name": "player_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Player Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerOut"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/players/{player_id}/stats": {
+      "get": {
+        "tags": [
+          "players"
+        ],
+        "summary": "Player Stats",
+        "description": "Passing, rushing, and receiving stats from official-stat yardage columns.",
+        "operationId": "player_stats_api_v1_players__player_id__stats_get",
+        "parameters": [
+          {
+            "name": "player_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Player Id"
+            }
+          },
+          {
+            "name": "no_cache",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Skip the analytics cache and compute fresh (response is not cached)",
+              "default": false,
+              "title": "No Cache"
+            },
+            "description": "Skip the analytics cache and compute fresh (response is not cached)"
+          },
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 2100,
+                  "minimum": 1999
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Season year, e.g. 2024. Required for public data; optional for uploads.",
+              "title": "Season"
+            },
+            "description": "Season year, e.g. 2024. Required for public data; optional for uploads."
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Side",
+              "description": "Team's plays on offense or allowed on defense",
+              "default": "offense"
+            },
+            "description": "Team's plays on offense or allowed on defense"
+          },
+          {
+            "name": "season_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/SeasonType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "REG or POST",
+              "title": "Season Type"
+            },
+            "description": "REG or POST"
+          },
+          {
+            "name": "week_min",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "First week (inclusive)",
+              "title": "Week Min"
+            },
+            "description": "First week (inclusive)"
+          },
+          {
+            "name": "week_max",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "maximum": 22,
+                  "minimum": 1
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Last week (inclusive)",
+              "title": "Week Max"
+            },
+            "description": "Last week (inclusive)"
+          },
+          {
+            "name": "opponent",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 5
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Opponent abbreviation, e.g. KC",
+              "title": "Opponent"
+            },
+            "description": "Opponent abbreviation, e.g. KC"
+          },
+          {
+            "name": "down",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Down(s) 1-4",
+              "title": "Down"
+            },
+            "description": "Down(s) 1-4"
+          },
+          {
+            "name": "distance",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Distance"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Yards to go: short 1-3, medium 4-7, long 8+",
+              "title": "Distance"
+            },
+            "description": "Yards to go: short 1-3, medium 4-7, long 8+"
+          },
+          {
+            "name": "field_zone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FieldZone"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20",
+              "title": "Field Zone"
+            },
+            "description": "yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20"
+          },
+          {
+            "name": "qtr",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Quarter(s) 1-5 (5 = overtime)",
+              "title": "Qtr"
+            },
+            "description": "Quarter(s) 1-5 (5 = overtime)"
+          },
+          {
+            "name": "score_state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ScoreState"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Score margin from the team's perspective (one score = 1-8 points)",
+              "title": "Score State"
+            },
+            "description": "Score margin from the team's perspective (one score = 1-8 points)"
+          },
+          {
+            "name": "play_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PlayType"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "pass or run",
+              "title": "Play Type"
+            },
+            "description": "pass or run"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerStatsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
+    },
+    "/api/v1/games/{game_id}/plays": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "Game Plays",
+        "operationId": "game_plays_api_v1_games__game_id__plays_get",
+        "parameters": [
+          {
+            "name": "game_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Game Id"
+            }
+          },
+          {
+            "name": "play_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 20
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "e.g. pass, run, punt",
+              "title": "Play Type"
+            },
+            "description": "e.g. pass, run, punt"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Page Size"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GamePlayPage"
+                }
+              }
+            }
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1628,6 +3671,37 @@
           "sha256": {
             "type": "string",
             "title": "Sha256"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "public",
+              "upload"
+            ],
+            "title": "Kind",
+            "default": "public"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
           }
         },
         "type": "object",
@@ -1646,6 +3720,105 @@
           "long"
         ],
         "title": "Distance"
+      },
+      "EfficiencyResponse": {
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/FiltersOut"
+          },
+          "definitions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Definitions"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/DatasetOut"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "team": {
+            "$ref": "#/components/schemas/TeamKey"
+          },
+          "splits": {
+            "items": {
+              "$ref": "#/components/schemas/EfficiencySplitOut"
+            },
+            "type": "array",
+            "title": "Splits"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filters",
+          "definitions",
+          "dataset",
+          "warnings",
+          "team",
+          "splits"
+        ],
+        "title": "EfficiencyResponse"
+      },
+      "EfficiencySplitOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "plays": {
+            "type": "integer",
+            "title": "Plays"
+          },
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/MetricOut"
+            },
+            "type": "object",
+            "title": "Metrics"
+          },
+          "league": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/MetricOut"
+            },
+            "type": "object",
+            "title": "League"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RankOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "plays",
+          "games",
+          "metrics",
+          "league",
+          "rank"
+        ],
+        "title": "EfficiencySplitOut"
       },
       "ErrorBody": {
         "properties": {
@@ -1721,7 +3894,14 @@
       "FiltersOut": {
         "properties": {
           "season": {
-            "type": "integer",
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Season"
           },
           "side": {
@@ -1738,6 +3918,39 @@
               }
             ],
             "title": "Season Type"
+          },
+          "week_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Week Min"
+          },
+          "week_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Week Max"
+          },
+          "opponent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opponent"
           },
           "down": {
             "anyOf": [
@@ -1789,6 +4002,17 @@
             ],
             "title": "Qtr"
           },
+          "score_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score State"
+          },
           "play_type": {
             "anyOf": [
               {
@@ -1799,6 +4023,28 @@
               }
             ],
             "title": "Play Type"
+          },
+          "explosive_run_yards": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explosive Run Yards"
+          },
+          "explosive_pass_yards": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explosive Pass Yards"
           }
         },
         "type": "object",
@@ -1951,6 +4197,287 @@
           "total"
         ],
         "title": "GamePage"
+      },
+      "GamePlayOut": {
+        "properties": {
+          "play_id": {
+            "type": "integer",
+            "title": "Play Id"
+          },
+          "qtr": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qtr"
+          },
+          "game_seconds_remaining": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Game Seconds Remaining"
+          },
+          "offense": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Offense"
+          },
+          "defense": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Defense"
+          },
+          "down": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Down"
+          },
+          "yards_to_go": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yards To Go"
+          },
+          "yard_line_100": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yard Line 100"
+          },
+          "score_differential": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score Differential"
+          },
+          "play_type": {
+            "type": "string",
+            "title": "Play Type"
+          },
+          "yards_gained": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Yards Gained"
+          },
+          "epa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Epa"
+          },
+          "success": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Success"
+          },
+          "touchdown": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Touchdown"
+          },
+          "interception": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interception"
+          },
+          "fumble_lost": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fumble Lost"
+          },
+          "penalty": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Penalty"
+          },
+          "passer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passer"
+          },
+          "rusher": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rusher"
+          },
+          "receiver": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receiver"
+          }
+        },
+        "type": "object",
+        "required": [
+          "play_id",
+          "qtr",
+          "game_seconds_remaining",
+          "offense",
+          "defense",
+          "down",
+          "yards_to_go",
+          "yard_line_100",
+          "score_differential",
+          "play_type",
+          "yards_gained",
+          "epa",
+          "success",
+          "touchdown",
+          "interception",
+          "fumble_lost",
+          "penalty",
+          "passer",
+          "rusher",
+          "receiver"
+        ],
+        "title": "GamePlayOut"
+      },
+      "GamePlayPage": {
+        "properties": {
+          "game": {
+            "$ref": "#/components/schemas/GameOut"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GamePlayOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game",
+          "items",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "title": "GamePlayPage"
+      },
+      "GroupBy": {
+        "type": "string",
+        "enum": [
+          "down",
+          "distance",
+          "field_zone",
+          "qtr",
+          "score_state",
+          "play_type"
+        ],
+        "title": "GroupBy"
       },
       "HTTPValidationError": {
         "properties": {
@@ -2387,6 +4914,258 @@
         ],
         "title": "PlayType"
       },
+      "PlayerListItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Stable nflverse GSIS player id, e.g. 00-0034796"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "season_plays": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Season Plays",
+            "description": "Plays as passer, rusher, or target in the season filter"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "position"
+        ],
+        "title": "PlayerListItem"
+      },
+      "PlayerOut": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Stable nflverse GSIS player id, e.g. 00-0034796"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "position"
+        ],
+        "title": "PlayerOut"
+      },
+      "PlayerPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerListItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "page_size": {
+            "type": "integer",
+            "title": "Page Size"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "page",
+          "page_size",
+          "total"
+        ],
+        "title": "PlayerPage"
+      },
+      "PlayerStatsResponse": {
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/FiltersOut"
+          },
+          "definitions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Definitions"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/DatasetOut"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "player": {
+            "$ref": "#/components/schemas/PlayerOut"
+          },
+          "teams": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Teams"
+          },
+          "sample": {
+            "$ref": "#/components/schemas/SampleOut"
+          },
+          "passing": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "$ref": "#/components/schemas/MetricOut"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Passing"
+          },
+          "rushing": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "$ref": "#/components/schemas/MetricOut"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Rushing"
+          },
+          "receiving": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "$ref": "#/components/schemas/MetricOut"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Receiving"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filters",
+          "definitions",
+          "dataset",
+          "warnings",
+          "player",
+          "teams",
+          "sample",
+          "passing",
+          "rushing",
+          "receiving",
+          "limitations"
+        ],
+        "title": "PlayerStatsResponse"
+      },
+      "RankOut": {
+        "properties": {
+          "metric": {
+            "type": "string",
+            "title": "Metric"
+          },
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "of": {
+            "type": "integer",
+            "title": "Of"
+          },
+          "better": {
+            "type": "string",
+            "enum": [
+              "higher",
+              "lower"
+            ],
+            "title": "Better"
+          }
+        },
+        "type": "object",
+        "required": [
+          "metric",
+          "rank",
+          "of",
+          "better"
+        ],
+        "title": "RankOut"
+      },
       "ReadinessOut": {
         "properties": {
           "status": {
@@ -2427,6 +5206,18 @@
           "games"
         ],
         "title": "SampleOut"
+      },
+      "ScoreState": {
+        "type": "string",
+        "enum": [
+          "trailing_9plus",
+          "trailing_1_8",
+          "tied",
+          "leading_1_8",
+          "leading_9plus"
+        ],
+        "title": "ScoreState",
+        "description": "Score margin from the selected team's perspective (one score = up to 8 points)."
       },
       "SeasonOut": {
         "properties": {
@@ -2484,6 +5275,117 @@
         ],
         "title": "Side"
       },
+      "SituationRowOut": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "plays": {
+            "type": "integer",
+            "title": "Plays"
+          },
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/MetricOut"
+            },
+            "type": "object",
+            "title": "Metrics"
+          },
+          "league": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/MetricOut"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "League"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "plays",
+          "games",
+          "metrics",
+          "league"
+        ],
+        "title": "SituationRowOut"
+      },
+      "SituationalResponse": {
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/FiltersOut"
+          },
+          "definitions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Definitions"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/DatasetOut"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "team": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TeamKey"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "group_by": {
+            "type": "string",
+            "title": "Group By"
+          },
+          "overall": {
+            "$ref": "#/components/schemas/SituationRowOut"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/SituationRowOut"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filters",
+          "definitions",
+          "dataset",
+          "warnings",
+          "team",
+          "group_by",
+          "overall",
+          "rows"
+        ],
+        "title": "SituationalResponse"
+      },
       "TeamComparisonResponse": {
         "properties": {
           "filters": {
@@ -2523,6 +5425,31 @@
           "warnings"
         ],
         "title": "TeamComparisonResponse"
+      },
+      "TeamKey": {
+        "properties": {
+          "abbreviation": {
+            "type": "string",
+            "title": "Abbreviation"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "abbreviation"
+        ],
+        "title": "TeamKey",
+        "description": "A team as named in the dataset (public datasets also carry the full name)."
       },
       "TeamOut": {
         "properties": {
@@ -2651,6 +5578,319 @@
           "dataset"
         ],
         "title": "TeamStatsResponse"
+      },
+      "TendenciesResponse": {
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/FiltersOut"
+          },
+          "definitions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Definitions"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/DatasetOut"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "team": {
+            "$ref": "#/components/schemas/TeamKey"
+          },
+          "sample": {
+            "$ref": "#/components/schemas/SampleOut"
+          },
+          "down_distance": {
+            "items": {
+              "$ref": "#/components/schemas/TendencyCellOut"
+            },
+            "type": "array",
+            "title": "Down Distance"
+          },
+          "third_down": {
+            "$ref": "#/components/schemas/ThirdDownOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filters",
+          "definitions",
+          "dataset",
+          "warnings",
+          "team",
+          "sample",
+          "down_distance",
+          "third_down"
+        ],
+        "title": "TendenciesResponse"
+      },
+      "TendencyCellOut": {
+        "properties": {
+          "down": {
+            "type": "integer",
+            "title": "Down"
+          },
+          "distance": {
+            "type": "string",
+            "title": "Distance"
+          },
+          "plays": {
+            "type": "integer",
+            "title": "Plays"
+          },
+          "pass_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "epa_per_play": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "success_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "league_pass_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "down",
+          "distance",
+          "plays",
+          "pass_rate",
+          "epa_per_play",
+          "success_rate",
+          "league_pass_rate"
+        ],
+        "title": "TendencyCellOut"
+      },
+      "ThirdDownBucketOut": {
+        "properties": {
+          "distance": {
+            "type": "string",
+            "title": "Distance"
+          },
+          "plays": {
+            "type": "integer",
+            "title": "Plays"
+          },
+          "conversion_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "league_conversion_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "pass_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "epa_per_play": {
+            "$ref": "#/components/schemas/MetricOut"
+          }
+        },
+        "type": "object",
+        "required": [
+          "distance",
+          "plays",
+          "conversion_rate",
+          "league_conversion_rate",
+          "pass_rate",
+          "epa_per_play"
+        ],
+        "title": "ThirdDownBucketOut"
+      },
+      "ThirdDownOut": {
+        "properties": {
+          "plays": {
+            "type": "integer",
+            "title": "Plays"
+          },
+          "games": {
+            "type": "integer",
+            "title": "Games"
+          },
+          "conversion_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "converted_by_penalty": {
+            "type": "integer",
+            "title": "Converted By Penalty"
+          },
+          "avg_yards_to_go": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Yards To Go"
+          },
+          "pass_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "epa_per_play": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "league_conversion_rate": {
+            "$ref": "#/components/schemas/MetricOut"
+          },
+          "rank": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RankOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "by_distance": {
+            "items": {
+              "$ref": "#/components/schemas/ThirdDownBucketOut"
+            },
+            "type": "array",
+            "title": "By Distance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "plays",
+          "games",
+          "conversion_rate",
+          "converted_by_penalty",
+          "avg_yards_to_go",
+          "pass_rate",
+          "epa_per_play",
+          "league_conversion_rate",
+          "rank",
+          "by_distance"
+        ],
+        "title": "ThirdDownOut"
+      },
+      "TrendPointOut": {
+        "properties": {
+          "game_key": {
+            "type": "string",
+            "title": "Game Key"
+          },
+          "week": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Week"
+          },
+          "season_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Season Type"
+          },
+          "opponent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Opponent"
+          },
+          "plays": {
+            "type": "integer",
+            "title": "Plays"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/MetricOut"
+            },
+            "type": "object",
+            "title": "Metrics"
+          },
+          "league_epa_per_play": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "League Epa Per Play"
+          }
+        },
+        "type": "object",
+        "required": [
+          "game_key",
+          "week",
+          "season_type",
+          "opponent",
+          "plays",
+          "metrics",
+          "league_epa_per_play"
+        ],
+        "title": "TrendPointOut"
+      },
+      "TrendsResponse": {
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/FiltersOut"
+          },
+          "definitions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Definitions"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/DatasetOut"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "team": {
+            "$ref": "#/components/schemas/TeamKey"
+          },
+          "games": {
+            "items": {
+              "$ref": "#/components/schemas/TrendPointOut"
+            },
+            "type": "array",
+            "title": "Games"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filters",
+          "definitions",
+          "dataset",
+          "warnings",
+          "team",
+          "games"
+        ],
+        "title": "TrendsResponse"
       },
       "UserOut": {
         "properties": {

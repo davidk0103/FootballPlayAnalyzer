@@ -5,7 +5,16 @@ from typing import Annotated
 from fastapi import Depends, Query, Request
 from sqlalchemy.orm import Session
 
-from app.analytics.filters import Distance, FieldZone, PlayFilters, PlayType, SeasonType, Side
+from app.analytics.filters import (
+    Distance,
+    FieldZone,
+    PlayFilters,
+    PlayType,
+    ScoreState,
+    SeasonType,
+    Side,
+)
+from app.analytics.metrics import EXPLOSIVE_PASS_YARDS, EXPLOSIVE_RUN_YARDS, Thresholds
 from app.auth.ratelimit import RateLimiter, Rule, get_rate_limiter
 from app.auth.service import user_for_token
 from app.cache import AnalyticsCache, get_cache
@@ -80,11 +89,26 @@ def rate_limit(rule: Rule) -> Callable[[User, RateLimiter], None]:
 
 
 def play_filters(
-    season: Annotated[int, Query(ge=1999, le=2100, description="Season year, e.g. 2024")],
+    season: Annotated[
+        int | None,
+        Query(
+            ge=1999,
+            le=2100,
+            description="Season year, e.g. 2024. Required for public data; optional for uploads.",
+        ),
+    ] = None,
     side: Annotated[Side, Query(description="Team's plays on offense or allowed on defense")] = (
         Side.OFFENSE
     ),
     season_type: Annotated[SeasonType | None, Query(description="REG or POST")] = None,
+    week_min: Annotated[
+        int | None, Query(ge=1, le=22, description="First week (inclusive)")
+    ] = None,
+    week_max: Annotated[int | None, Query(ge=1, le=22, description="Last week (inclusive)")] = None,
+    opponent: Annotated[
+        str | None,
+        Query(min_length=2, max_length=5, description="Opponent abbreviation, e.g. KC"),
+    ] = None,
     down: Annotated[list[int] | None, Query(description="Down(s) 1-4")] = None,
     distance: Annotated[
         Distance | None, Query(description="Yards to go: short 1-3, medium 4-7, long 8+")
@@ -94,6 +118,10 @@ def play_filters(
         Query(description="yardline_100: own_deep 80-99, own 50-79, opp 21-49, red_zone 1-20"),
     ] = None,
     qtr: Annotated[list[int] | None, Query(description="Quarter(s) 1-5 (5 = overtime)")] = None,
+    score_state: Annotated[
+        ScoreState | None,
+        Query(description="Score margin from the team's perspective (one score = 1-8 points)"),
+    ] = None,
     play_type: Annotated[PlayType | None, Query(description="pass or run")] = None,
 ) -> PlayFilters:
     downs = tuple(sorted(set(down or [])))
@@ -102,16 +130,37 @@ def play_filters(
         raise InvalidRequestError("down must be between 1 and 4")
     if any(q not in (1, 2, 3, 4, 5) for q in qtrs):
         raise InvalidRequestError("qtr must be between 1 and 5")
+    if week_min is not None and week_max is not None and week_min > week_max:
+        raise InvalidRequestError("week_min must not be after week_max")
     return PlayFilters(
         season=season,
         side=side,
         season_type=season_type,
+        week_min=week_min,
+        week_max=week_max,
+        opponent=opponent.strip().upper() if opponent else None,
         down=downs,
         distance=distance,
         field_zone=field_zone,
         qtr=qtrs,
+        score_state=score_state,
         play_type=play_type,
     )
 
 
 FiltersDep = Annotated[PlayFilters, Depends(play_filters)]
+
+
+def thresholds(
+    explosive_run_yards: Annotated[
+        int, Query(ge=5, le=50, description="Configurable: runs of this many yards are explosive")
+    ] = EXPLOSIVE_RUN_YARDS,
+    explosive_pass_yards: Annotated[
+        int,
+        Query(ge=10, le=60, description="Configurable: passes of this many yards are explosive"),
+    ] = EXPLOSIVE_PASS_YARDS,
+) -> Thresholds:
+    return Thresholds(run_yards=explosive_run_yards, pass_yards=explosive_pass_yards)
+
+
+ThresholdsDep = Annotated[Thresholds, Depends(thresholds)]

@@ -13,6 +13,7 @@ from app.api.deps import (
     FiltersDep,
     OptionalUserDep,
     SessionDep,
+    ThresholdsDep,
 )
 from app.jobs import service as jobs
 from app.jobs.state import JobStatus
@@ -94,13 +95,14 @@ def get_team(team_id: str, session: SessionDep) -> TeamOut:
 def team_stats(
     team_id: str,
     filters: FiltersDep,
+    thresholds: ThresholdsDep,
     session: SessionDep,
     cache: CacheDep,
     response: Response,
     no_cache: NoCache = False,
 ) -> TeamStatsResponse:
     result, status = team_analytics.team_stats(
-        session, team_id, filters, cache=cache, bypass_cache=no_cache
+        session, team_id, filters, cache=cache, thresholds=thresholds, bypass_cache=no_cache
     )
     response.headers[CACHE_HEADER] = status.value
     return result
@@ -130,13 +132,20 @@ def team_comparison(
     team_a: Annotated[str, Query(description="Team abbreviation or id")],
     team_b: Annotated[str, Query(description="Team abbreviation or id")],
     filters: FiltersDep,
+    thresholds: ThresholdsDep,
     session: SessionDep,
     cache: CacheDep,
     response: Response,
     no_cache: NoCache = False,
 ) -> TeamComparisonResponse:
     result, status = team_analytics.compare_teams(
-        session, team_a, team_b, filters, cache=cache, bypass_cache=no_cache
+        session,
+        team_a,
+        team_b,
+        filters,
+        cache=cache,
+        thresholds=thresholds,
+        bypass_cache=no_cache,
     )
     response.headers[CACHE_HEADER] = status.value
     return result

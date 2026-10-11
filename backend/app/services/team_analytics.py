@@ -1,16 +1,14 @@
-"""Team stats and comparisons: fetch plays, run pure analytics, build the envelope."""
+"""Team stats and comparisons: load plays, run pure analytics, build the envelope."""
 
 from dataclasses import asdict
 
 from sqlalchemy.orm import Session
 
-from app.analytics import DEFINITIONS, PlayFilters, apply_filters, compute_team_metrics
+from app.analytics import PlayFilters, apply_filters, compute_team_metrics
+from app.analytics.metrics import DEFAULT_THRESHOLDS, Thresholds, definitions
 from app.cache import AnalyticsCache, CacheStatus
 from app.config import get_settings
-from app.models import Dataset, Team
-from app.repositories import plays as plays_repo
 from app.schemas import (
-    DatasetOut,
     FiltersOut,
     MetricOut,
     MetricsOut,
@@ -21,29 +19,40 @@ from app.schemas import (
     TeamStatsResponse,
 )
 from app.services.catalog import require_team
-from app.services.errors import InvalidRequestError, NotFoundError
-
-DATASET_SOURCE = "nflverse pbp"
-
-
-def _require_dataset(session: Session, season: int) -> Dataset:
-    dataset = plays_repo.latest_dataset(session, season)
-    if dataset is None:
-        raise NotFoundError(f"No imported data for season {season}")
-    return dataset
+from app.services.errors import InvalidRequestError
+from app.services.sources import PlaySource, public_source
 
 
-def _dataset_out(dataset: Dataset) -> DatasetOut:
-    return DatasetOut(source=DATASET_SOURCE, version=dataset.source_version, sha256=dataset.sha256)
+def filters_out(filters: PlayFilters, thresholds: Thresholds) -> FiltersOut:
+    return FiltersOut.model_validate(
+        {
+            **filters.as_dict(),
+            "explosive_run_yards": thresholds.run_yards,
+            "explosive_pass_yards": thresholds.pass_yards,
+        }
+    )
 
 
-def _team_stats(session: Session, team: Team, filters: PlayFilters) -> TeamStatsOut:
-    plays = plays_repo.team_season_plays(session, team.id, filters.season, filters.side)
+def cache_params(
+    filters: PlayFilters, thresholds: Thresholds, **extra: object
+) -> dict[str, object]:
+    return {
+        **extra,
+        **filters.as_dict(),
+        "xr": thresholds.run_yards,
+        "xp": thresholds.pass_yards,
+    }
+
+
+def _team_stats(
+    source: PlaySource, team: TeamRef, filters: PlayFilters, thresholds: Thresholds
+) -> TeamStatsOut:
+    plays = apply_filters(source.view(filters, team.abbreviation), filters)
     result = compute_team_metrics(
-        apply_filters(plays, filters), min_sample=get_settings().min_sample_warning
+        plays, min_sample=get_settings().min_sample_warning, thresholds=thresholds
     )
     return TeamStatsOut(
-        team=TeamRef.model_validate(team),
+        team=team,
         sample=SampleOut(plays=result.plays, games=result.games),
         metrics=MetricsOut(**{name: MetricOut(**asdict(m)) for name, m in result.metrics.items()}),
         warnings=result.warnings,
@@ -56,25 +65,26 @@ def team_stats(
     filters: PlayFilters,
     *,
     cache: AnalyticsCache,
+    thresholds: Thresholds = DEFAULT_THRESHOLDS,
     bypass_cache: bool = False,
 ) -> tuple[TeamStatsResponse, CacheStatus]:
-    team = require_team(session, team_key)
-    dataset = _require_dataset(session, filters.season)
+    team = TeamRef.model_validate(require_team(session, team_key))
+    source = public_source(session, filters.season)
 
     def compute() -> TeamStatsResponse:
-        stats = _team_stats(session, team, filters)
+        stats = _team_stats(source, team, filters, thresholds)
         return TeamStatsResponse(
             **stats.model_dump(),
-            filters=FiltersOut.model_validate(filters.as_dict()),
-            definitions=DEFINITIONS,
-            dataset=_dataset_out(dataset),
+            filters=filters_out(filters, thresholds),
+            definitions=definitions(thresholds),
+            dataset=source.dataset,
         )
 
     return cache.get_or_compute(
         namespace="team-stats",
-        season=filters.season,
-        dataset_sha=dataset.sha256,
-        params={"team": team.id, **filters.as_dict()},
+        season=source.cache_season,
+        dataset_sha=source.cache_sha,
+        params=cache_params(filters, thresholds, team=team.id),
         model=TeamStatsResponse,
         compute=compute,
         bypass=bypass_cache,
@@ -88,32 +98,33 @@ def compare_teams(
     filters: PlayFilters,
     *,
     cache: AnalyticsCache,
+    thresholds: Thresholds = DEFAULT_THRESHOLDS,
     bypass_cache: bool = False,
 ) -> tuple[TeamComparisonResponse, CacheStatus]:
-    team_a = require_team(session, team_a_key)
-    team_b = require_team(session, team_b_key)
+    team_a = TeamRef.model_validate(require_team(session, team_a_key))
+    team_b = TeamRef.model_validate(require_team(session, team_b_key))
     if team_a.id == team_b.id:
         raise InvalidRequestError("team_a and team_b must be different teams")
-    dataset = _require_dataset(session, filters.season)
+    source = public_source(session, filters.season)
 
     def compute() -> TeamComparisonResponse:
-        a = _team_stats(session, team_a, filters)
-        b = _team_stats(session, team_b, filters)
+        a = _team_stats(source, team_a, filters, thresholds)
+        b = _team_stats(source, team_b, filters, thresholds)
         warnings = [f"{s.team.abbreviation}: {w}" for s in (a, b) for w in s.warnings]
         return TeamComparisonResponse(
-            filters=FiltersOut.model_validate(filters.as_dict()),
+            filters=filters_out(filters, thresholds),
             team_a=a,
             team_b=b,
-            definitions=DEFINITIONS,
-            dataset=_dataset_out(dataset),
+            definitions=definitions(thresholds),
+            dataset=source.dataset,
             warnings=warnings,
         )
 
     return cache.get_or_compute(
         namespace="team-comparison",
-        season=filters.season,
-        dataset_sha=dataset.sha256,
-        params={"team_a": team_a.id, "team_b": team_b.id, **filters.as_dict()},
+        season=source.cache_season,
+        dataset_sha=source.cache_sha,
+        params=cache_params(filters, thresholds, team_a=team_a.id, team_b=team_b.id),
         model=TeamComparisonResponse,
         compute=compute,
         bypass=bypass_cache,

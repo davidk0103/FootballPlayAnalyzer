@@ -131,7 +131,7 @@ async def test_team_stats_matches_reference(client: httpx.AsyncClient) -> None:
     assert m["third_down_conversion_rate"]["denominator"] == ref["third_downs"]
     assert m["explosive_play_rate"]["numerator"] == ref["explosive"]
     assert m["turnovers_per_game"]["value"] == ref["turnovers"]
-    assert set(body["definitions"]) == set(m)
+    assert set(m) <= set(body["definitions"])
     assert body["dataset"]["source"] == "nflverse pbp"
     assert body["dataset"]["version"] == "test"
     assert body["warnings"] == []

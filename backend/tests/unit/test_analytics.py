@@ -8,10 +8,13 @@ from app.analytics.filters import (
     FieldZone,
     PlayFilters,
     PlayType,
+    ScoreState,
     SeasonType,
     apply_filters,
 )
+from app.analytics.frame import Side, coerce_frame, team_view
 from app.analytics.metrics import (
+    Thresholds,
     compute_team_metrics,
     explosive_metrics,
     ratio,
@@ -22,7 +25,12 @@ from app.analytics.metrics import (
 
 def play(**overrides: Any) -> dict[str, Any]:
     base: dict[str, Any] = {
-        "game_id": 1,
+        "game_key": "g1",
+        "season": 2023,
+        "week": 1,
+        "offense": "DET",
+        "defense": "KC",
+        "score_differential": 0,
         "season_type": "REG",
         "play_type": "pass",
         "down": 1,
@@ -42,8 +50,10 @@ def play(**overrides: Any) -> dict[str, Any]:
     return base
 
 
-def frame(*rows: dict[str, Any]) -> pd.DataFrame:
-    return pd.DataFrame(list(rows))
+def frame(
+    *rows: dict[str, Any], team: str | None = None, side: Side = Side.OFFENSE
+) -> pd.DataFrame:
+    return team_view(coerce_frame(pd.DataFrame(list(rows))), team, side)
 
 
 def test_ratio_zero_denominator_is_null_not_zero() -> None:
@@ -125,9 +135,9 @@ def test_explosive_thresholds(play_type: str, yards: int, explosive: bool) -> No
 
 def test_turnovers_per_game() -> None:
     df = frame(
-        play(game_id=1, interception=True),
-        play(game_id=1, fumble_lost=True),
-        play(game_id=2),
+        play(game_key="g1", interception=True),
+        play(game_key="g1", fumble_lost=True),
+        play(game_key="g2"),
     )
     result = compute_team_metrics(df, min_sample=1)
     assert result.games == 2
@@ -205,3 +215,79 @@ def test_combined_filters() -> None:
         "qtr": [4, 5],
         "play_type": "pass",
     }
+
+
+def test_third_down_counts_penalty_first_downs_and_not_defensive_touchdowns() -> None:
+    df = frame(
+        play(down=3, third_down_converted=True, first_down=True),
+        # Play stood, accepted defensive penalty awarded a first down.
+        play(down=3, third_down_converted=False, first_down_penalty=True, penalty=True),
+        # Pick-six: touchdown on the play, but the offense failed.
+        play(down=3, third_down_converted=False, touchdown=True, interception=True),
+        play(down=3, third_down_converted=False),
+    )
+    m = third_down_metrics(scrimmage_plays(df))["third_down_conversion_rate"]
+    assert (m.numerator, m.denominator, m.value) == (2.0, 4, 0.5)
+
+
+def test_custom_explosive_thresholds() -> None:
+    df = frame(play(play_type="run", yards_gained=8), play(play_type="pass", yards_gained=15))
+    assert explosive_metrics(df)["explosive_play_rate"].value == 0.0
+    custom = explosive_metrics(df, Thresholds(run_yards=8, pass_yards=15))
+    assert custom["explosive_play_rate"].value == 1.0
+
+
+@pytest.mark.parametrize(
+    ("diff", "side", "state"),
+    [
+        (-9, Side.OFFENSE, ScoreState.TRAILING_BIG),
+        (-8, Side.OFFENSE, ScoreState.TRAILING),
+        (0, Side.OFFENSE, ScoreState.TIED),
+        (8, Side.OFFENSE, ScoreState.LEADING),
+        (9, Side.OFFENSE, ScoreState.LEADING_BIG),
+        # nflverse score_differential is the offense's margin; a defense sees the negation.
+        (-9, Side.DEFENSE, ScoreState.LEADING_BIG),
+        (3, Side.DEFENSE, ScoreState.TRAILING),
+    ],
+)
+def test_score_state_is_from_the_selected_teams_perspective(
+    diff: int, side: Side, state: ScoreState
+) -> None:
+    team = "DET" if side == Side.OFFENSE else "KC"
+    df = frame(play(score_differential=diff), team=team, side=side)
+    kept = apply_filters(df, PlayFilters(season=2023, side=side, score_state=state))
+    assert len(kept) == 1
+    others = [s for s in ScoreState if s != state]
+    for other in others:
+        assert apply_filters(df, PlayFilters(season=2023, score_state=other)).empty
+
+
+def test_unknown_score_is_never_bucketed() -> None:
+    df = frame(play(score_differential=None))
+    for state in ScoreState:
+        assert apply_filters(df, PlayFilters(season=2023, score_state=state)).empty
+
+
+def test_week_range_and_opponent() -> None:
+    df = frame(
+        play(week=1, defense="KC"),
+        play(week=5, defense="KC"),
+        play(week=5, defense="GB"),
+        play(week=9, defense="KC"),
+        team="DET",
+    )
+    filters = PlayFilters(season=2023, week_min=2, week_max=8, opponent="KC")
+    assert len(apply_filters(df, filters)) == 1
+    assert filters.as_dict()["opponent"] == "KC"
+
+
+def test_team_view_selects_side() -> None:
+    df = coerce_frame(
+        pd.DataFrame([play(offense="DET", defense="KC"), play(offense="KC", defense="DET")])
+    )
+    offense = team_view(df, "DET", Side.OFFENSE)
+    defense = team_view(df, "DET", Side.DEFENSE)
+    assert list(offense["opponent"]) == ["KC"]
+    assert list(defense["opponent"]) == ["KC"]
+    assert list(defense["offense"]) == ["KC"]
+    assert len(team_view(df, None, Side.OFFENSE)) == 2

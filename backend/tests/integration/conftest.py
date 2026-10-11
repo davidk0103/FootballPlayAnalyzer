@@ -22,6 +22,7 @@ from app.ingest.service import IngestSummary, ingest_season
 from app.ingest.source import SourceFile, sha256_file
 from app.main import create_app
 from app.models import User
+from app.repositories.frames import clear_frame_cache
 from tests.conftest import PBP_SAMPLE, PLAYERS_SAMPLE
 from tests.integration import TEST_CACHE_URL
 
@@ -134,5 +135,6 @@ def clean_redis() -> Iterator[None]:
     client.flushdb()
     get_cache.cache_clear()
     get_rate_limiter.cache_clear()
+    clear_frame_cache()
     yield
     client.flushdb()

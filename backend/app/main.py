@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.analytics_routes import router as analytics_router
 from app.api.auth_routes import router as auth_router
 from app.api.errors import csrf_middleware, install_error_handlers, request_id_middleware
 from app.api.routes import api, health
@@ -35,6 +36,7 @@ def create_app() -> FastAPI:
     app.include_router(health)
     app.include_router(auth_router)
     app.include_router(api)
+    app.include_router(analytics_router)
     return app
 
 
