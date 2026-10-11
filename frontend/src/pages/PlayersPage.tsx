@@ -41,6 +41,7 @@ const PLAYER_STAT_LABELS: Record<string, string> = {
   catch_rate: 'Catch rate',
   receiving_yards: 'Receiving yards',
   yards_per_target: 'Yards / target',
+  yards_per_reception: 'Yards / reception',
   receiving_touchdowns: 'Receiving TDs',
   epa_per_target: 'EPA / target',
 }
@@ -130,11 +131,15 @@ function PlayerSearchPanel({
               const picked = selected.includes(p.id)
               return (
                 <li key={p.id} className="flex items-center gap-3 px-3 py-2 text-sm">
-                  <span className="min-w-0 flex-1 truncate font-medium">{p.name ?? p.id}</span>
-                  {p.position && <Badge variant="secondary">{p.position}</Badge>}
-                  {p.season_plays !== null && (
-                    <span className="hidden text-xs text-muted-foreground tabular-nums sm:inline">{p.season_plays} plays</span>
-                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium" title={p.name ?? p.id}>
+                      {p.name ?? p.id}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground tabular-nums">
+                      {p.position && <Badge variant="secondary">{p.position}</Badge>}
+                      {p.season_plays !== null && <span>{p.season_plays} plays</span>}
+                    </div>
+                  </div>
                   <Button
                     size="sm"
                     variant={picked ? 'secondary' : 'outline'}
@@ -262,7 +267,7 @@ function Comparison({ ids, season, onRemove }: { ids: string[]; season: number |
           </ul>
         </CardContent>
       </Card>
-      <Definitions definitions={first.definitions} />
+      <Definitions definitions={first.definitions} labels={PLAYER_STAT_LABELS} />
       <DatasetFooter dataset={first.dataset} />
     </div>
   )

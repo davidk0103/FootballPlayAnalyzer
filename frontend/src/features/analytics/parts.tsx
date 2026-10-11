@@ -2,7 +2,7 @@ import { Database, Info, TriangleAlert } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { formatDifference, formatMetric, formatValue, fraction, METRIC_LABELS } from '@/lib/format'
+import { formatDifference, formatMetric, formatValue, fraction, labelFor, METRIC_LABELS } from '@/lib/format'
 import type { Dataset, Metric } from '@/services/api'
 
 export function Warnings({ warnings, title = 'Read with care' }: { warnings: string[]; title?: string }) {
@@ -42,10 +42,12 @@ export function DatasetFooter({ dataset }: { dataset: Dataset }) {
 export function Definitions({
   definitions,
   keys,
+  labels,
   title = 'How these are calculated',
 }: {
   definitions: Record<string, string>
   keys?: string[]
+  labels?: Record<string, string>
   title?: string
 }) {
   const entries = (keys ?? Object.keys(definitions)).filter((k) => definitions[k])
@@ -60,7 +62,7 @@ export function Definitions({
         <dl className="grid gap-3 text-sm sm:grid-cols-2">
           {entries.map((k) => (
             <div key={k}>
-              <dt className="font-medium">{METRIC_LABELS[k] ?? k.replaceAll('_', ' ')}</dt>
+              <dt className="font-medium">{labelFor(k, labels)}</dt>
               <dd className="text-muted-foreground">{definitions[k]}</dd>
             </div>
           ))}

@@ -68,7 +68,7 @@ function Preview({ upload }: { upload: UploadDetail }) {
   )
 }
 
-function ValidationResult({ result }: { result: MappingValidation }) {
+function ValidationResult({ result, columns }: { result: MappingValidation; columns: string[] }) {
   if (result.mapping_errors.length > 0) {
     return (
       <Alert variant="destructive" data-testid="mapping-errors">
@@ -95,12 +95,22 @@ function ValidationResult({ result }: { result: MappingValidation }) {
         </AlertDescription>
       </Alert>
       <Warnings warnings={result.warnings} title="Heads up" />
-      {result.issues.length > 0 && <IssueTable issues={result.issues} title="Example problems in the sample" />}
+      {result.issues.length > 0 && <IssueTable issues={result.issues} title="Example problems in the sample" columns={columns} />}
     </div>
   )
 }
 
-function IssueTable({ issues, title }: { issues: MappingValidation['issues']; title: string }) {
+function IssueTable({
+  issues,
+  title,
+  columns,
+}: {
+  issues: MappingValidation['issues']
+  title: string
+  columns: string[]
+}) {
+  const order = (values: Record<string, string>) =>
+    Object.entries(values).sort(([a], [b]) => columns.indexOf(a) - columns.indexOf(b))
   return (
     <div className="flex flex-col gap-2">
       <h3 className="text-sm font-medium">{title}</h3>
@@ -119,7 +129,7 @@ function IssueTable({ issues, title }: { issues: MappingValidation['issues']; ti
                 <TableCell className="text-right tabular-nums">{issue.row_number}</TableCell>
                 <TableCell className="whitespace-normal">{issue.reason}</TableCell>
                 <TableCell className="hidden max-w-96 truncate font-mono text-muted-foreground md:table-cell">
-                  {Object.entries(issue.values)
+                  {order(issue.values)
                     .map(([k, v]) => `${k}=${v}`)
                     .join(', ')}
                 </TableCell>
@@ -213,7 +223,7 @@ function MappingEditor({ upload }: { upload: UploadDetail }) {
           </p>
         )}
         {validate.isError && <ErrorState title="Validation failed" error={validate.error} />}
-        {validate.data && <ValidationResult result={validate.data} />}
+        {validate.data && <ValidationResult result={validate.data} columns={upload.columns} />}
         {process.isError && <ErrorState title="Could not start processing" error={process.error} />}
         {editable && (
           <div className="flex flex-wrap items-center gap-2">
@@ -239,7 +249,7 @@ function MappingEditor({ upload }: { upload: UploadDetail }) {
   )
 }
 
-function Rejected({ id, total }: { id: string; total: number }) {
+function Rejected({ id, total, columns }: { id: string; total: number; columns: string[] }) {
   const [page, setPage] = useState(1)
   const rows = useRejectedRows(id, page, total > 0)
   if (total === 0) return null
@@ -256,7 +266,7 @@ function Rejected({ id, total }: { id: string; total: number }) {
           <Skeleton className="h-40" />
         ) : (
           <>
-            <IssueTable issues={rows.data.items} title="Rejected rows" />
+            <IssueTable issues={rows.data.items} title="Rejected rows" columns={columns} />
             {rows.data.total > rows.data.stored_limit && (
               <p className="text-xs text-muted-foreground">Only the first {rows.data.stored_limit} are kept for review.</p>
             )}
@@ -422,8 +432,24 @@ export function UploadDetailPage() {
         </Card>
       )}
       {u.status === 'ready' && <ReadySummary upload={u} />}
-      {u.status === 'ready' && <Rejected id={u.id} total={u.rejected_count ?? 0} />}
-      {u.status !== 'processing' && <MappingEditor key={u.id} upload={u} />}
+      {u.status === 'ready' && <Rejected id={u.id} total={u.rejected_count ?? 0} columns={u.columns} />}
+      {u.status === 'ready' ? (
+        <details className="group rounded-xl border bg-card px-4 py-3">
+          <summary className="cursor-pointer text-sm font-medium">Column mapping used</summary>
+          <dl className="mt-3 grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3">
+            {u.schema_fields
+              .filter((f) => u.mapping?.[f.name])
+              .map((f) => (
+                <div key={f.name} className="flex justify-between gap-2 border-b py-1">
+                  <dt className="text-muted-foreground">{f.label}</dt>
+                  <dd className="truncate font-mono text-xs">{u.mapping?.[f.name]}</dd>
+                </div>
+              ))}
+          </dl>
+        </details>
+      ) : (
+        u.status !== 'processing' && <MappingEditor key={u.id} upload={u} />
+      )}
       {u.preview.length > 0 ? <Preview upload={u} /> : <EmptyState title="No preview rows" />}
     </div>
   )
