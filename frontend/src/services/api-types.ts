@@ -643,6 +643,99 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Reports */
+        get: operations["list_reports_api_v1_reports_get"];
+        put?: never;
+        /**
+         * Create Report
+         * @description Save a report and generate it in the background. Poll GET /reports/{id}.
+         */
+        post: operations["create_report_api_v1_reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Report */
+        get: operations["get_report_api_v1_reports__report_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Report */
+        delete: operations["delete_report_api_v1_reports__report_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/exports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Export
+         * @description Generate a CSV or JSON file in the background; download it when ready.
+         */
+        post: operations["create_export_api_v1_reports__report_id__exports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/exports/{export_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Export */
+        get: operations["get_export_api_v1_reports__report_id__exports__export_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/{report_id}/exports/{export_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download Export */
+        get: operations["download_export_api_v1_reports__report_id__exports__export_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -771,6 +864,45 @@ export interface components {
             error: components["schemas"]["ErrorBody"];
         };
         /**
+         * ExportFormat
+         * @enum {string}
+         */
+        ExportFormat: "csv" | "json";
+        /** ExportOut */
+        ExportOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Report Id
+             * Format: uuid
+             */
+            report_id: string;
+            format: components["schemas"]["ExportFormat"];
+            status: components["schemas"]["ReportStatus"];
+            /** Size Bytes */
+            size_bytes: number | null;
+            /** Error */
+            error: string | null;
+            /** Job Id */
+            job_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Download Url */
+            download_url?: string | null;
+        };
+        /** ExportRequest */
+        ExportRequest: {
+            format: components["schemas"]["ExportFormat"];
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+        };
+        /**
          * FieldZone
          * @enum {string}
          */
@@ -805,6 +937,23 @@ export interface components {
             explosive_run_yards?: number | null;
             /** Explosive Pass Yards */
             explosive_pass_yards?: number | null;
+        };
+        /** FindingOut */
+        FindingOut: {
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "offense" | "defense";
+            /** Metric */
+            metric: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "strength" | "weakness" | "tendency";
+            /** Text */
+            text: string;
         };
         /** GameDetailOut */
         GameDetailOut: {
@@ -1066,6 +1215,24 @@ export interface components {
          * @enum {string}
          */
         PlayType: "pass" | "run";
+        /** PlayerLeaderOut */
+        PlayerLeaderOut: {
+            /**
+             * Category
+             * @enum {string}
+             */
+            category: "passing" | "rushing" | "receiving";
+            /** Player Id */
+            player_id: string;
+            /** Name */
+            name: string | null;
+            /** Position */
+            position: string | null;
+            /** Volume */
+            volume: number;
+            /** Yards */
+            yards: number;
+        };
         /** PlayerListItem */
         PlayerListItem: {
             /**
@@ -1176,6 +1343,161 @@ export interface components {
             /** Redis */
             redis: string;
         };
+        /** RedZoneOut */
+        RedZoneOut: {
+            /** Plays */
+            plays: number;
+            epa_per_play: components["schemas"]["MetricOut"];
+            success_rate: components["schemas"]["MetricOut"];
+            touchdown_rate: components["schemas"]["MetricOut"];
+        };
+        /** ReportMetricOut */
+        ReportMetricOut: {
+            /** Name */
+            name: string;
+            /** Label */
+            label: string;
+            /** Value */
+            value: number | null;
+            /** Numerator */
+            numerator: number;
+            /** Denominator */
+            denominator: number;
+            /** League Value */
+            league_value: number | null;
+            /** Difference */
+            difference: number | null;
+            /** Rank */
+            rank: number | null;
+            /** Of */
+            of: number | null;
+            /** Better */
+            better: ("higher" | "lower") | null;
+        };
+        /** ReportOut */
+        ReportOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Team */
+            team: string;
+            /** Season */
+            season: number | null;
+            /** Dataset Id */
+            dataset_id: string | null;
+            status: components["schemas"]["ReportStatus"];
+            /** Error */
+            error: string | null;
+            /** Job Id */
+            job_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Filters */
+            filters: {
+                [key: string]: unknown;
+            };
+            report: components["schemas"]["ScoutingReportOut"] | null;
+            /**
+             * Exports
+             * @default []
+             */
+            exports: components["schemas"]["ExportOut"][];
+        };
+        /** ReportPage */
+        ReportPage: {
+            /** Items */
+            items: components["schemas"]["ReportSummaryOut"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /** ReportRequest */
+        ReportRequest: {
+            /** Title */
+            title?: string | null;
+            /**
+             * Team
+             * @description Team abbreviation, e.g. DET
+             */
+            team: string;
+            /** Season */
+            season?: number | null;
+            /**
+             * Dataset Id
+             * @description One of your processed uploads; omit for public data
+             */
+            dataset_id?: string | null;
+            season_type?: components["schemas"]["SeasonType"] | null;
+            /** Week Min */
+            week_min?: number | null;
+            /** Week Max */
+            week_max?: number | null;
+            /** Opponent */
+            opponent?: string | null;
+            /**
+             * Explosive Run Yards
+             * @default 10
+             */
+            explosive_run_yards: number;
+            /**
+             * Explosive Pass Yards
+             * @default 20
+             */
+            explosive_pass_yards: number;
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+        };
+        /**
+         * ReportStatus
+         * @enum {string}
+         */
+        ReportStatus: "pending" | "ready" | "failed";
+        /** ReportSummaryOut */
+        ReportSummaryOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string;
+            /** Team */
+            team: string;
+            /** Season */
+            season: number | null;
+            /** Dataset Id */
+            dataset_id: string | null;
+            status: components["schemas"]["ReportStatus"];
+            /** Error */
+            error: string | null;
+            /** Job Id */
+            job_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
         /** RowIssueOut */
         RowIssueOut: {
             /** Row Number */
@@ -1213,6 +1535,36 @@ export interface components {
          * @enum {string}
          */
         ScoreState: "trailing_9plus" | "trailing_1_8" | "tied" | "leading_1_8" | "leading_9plus";
+        /**
+         * ScoutingReportOut
+         * @description The stored report body. A snapshot: it does not change if data is re-imported.
+         */
+        ScoutingReportOut: {
+            team: components["schemas"]["TeamKey"];
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            dataset: components["schemas"]["DatasetOut"];
+            filters: components["schemas"]["FiltersOut"];
+            offense: components["schemas"]["SideReportOut"];
+            defense: components["schemas"]["SideReportOut"];
+            /** Tendencies */
+            tendencies: components["schemas"]["TendencyCellOut"][];
+            /** Findings */
+            findings: components["schemas"]["FindingOut"][];
+            /** Top Players */
+            top_players: components["schemas"]["PlayerLeaderOut"][];
+            /** Definitions */
+            definitions: {
+                [key: string]: string;
+            };
+            /** Warnings */
+            warnings: string[];
+            /** Limitations */
+            limitations: string[];
+        };
         /** SeasonOut */
         SeasonOut: {
             /** Season */
@@ -1236,6 +1588,23 @@ export interface components {
          * @enum {string}
          */
         Side: "offense" | "defense";
+        /** SideReportOut */
+        SideReportOut: {
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "offense" | "defense";
+            /** Plays */
+            plays: number;
+            /** Games */
+            games: number;
+            /** Metrics */
+            metrics: components["schemas"]["ReportMetricOut"][];
+            third_down: components["schemas"]["ThirdDownOut"];
+            red_zone: components["schemas"]["RedZoneOut"];
+            league_red_zone: components["schemas"]["RedZoneOut"];
+        };
         /** SituationRowOut */
         SituationRowOut: {
             /** Key */
@@ -3631,6 +4000,451 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_reports_api_v1_reports_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportPage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_report_api_v1_reports_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_report_api_v1_reports__report_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_report_api_v1_reports__report_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_export_api_v1_reports__report_id__exports_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExportRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_export_api_v1_reports__report_id__exports__export_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+                export_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExportOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    download_export_api_v1_reports__report_id__exports__export_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+                export_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": unknown;
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

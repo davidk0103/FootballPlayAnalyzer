@@ -22,11 +22,13 @@ from sqlalchemy import Engine, func, select, text
 from sqlalchemy.orm import Session
 
 from app.cache import get_cache
+from app.config import get_settings
 from app.jobs import faults
 from app.jobs.reaper import reap_stale_jobs
 from app.jobs.state import AttemptStatus, JobStatus
 from app.main import create_app
-from app.models import Dataset, DatasetStatus, Job, JobAttempt, Play
+from app.models import Dataset, DatasetStatus, Job, JobAttempt, Play, UploadStatus, UserDataset
+from app.storage import get_storage
 from app.worker.tasks import _enqueue
 from tests.conftest import PBP_SAMPLE, PLAYERS_SAMPLE
 from tests.integration import TEST_BROKER_URL, TEST_CACHE_URL
@@ -53,9 +55,10 @@ WORKER_ENV = {
 
 
 class Worker:
-    def __init__(self, cache_dir: Path, log_path: Path) -> None:
+    def __init__(self, cache_dir: Path, log_path: Path, storage_dir: Path) -> None:
         self.cache_dir = cache_dir
         self.log_path = log_path
+        self.storage_dir = storage_dir
         self.proc: subprocess.Popen[bytes] | None = None
 
     def start(self) -> None:
@@ -66,6 +69,7 @@ class Worker:
             "BROKER_URL": TEST_BROKER_URL,
             "CACHE_URL": TEST_CACHE_URL,
             "DATA_CACHE_DIR": str(self.cache_dir),
+            "STORAGE_DIR": str(self.storage_dir),
         }
         log = self.log_path.open("ab")
         self.proc = subprocess.Popen(
@@ -136,18 +140,27 @@ def worker(
     engine: Engine, worker_cache_dir: Path, tmp_path_factory: pytest.TempPathFactory
 ) -> Iterator[Worker]:
     redis.Redis.from_url(TEST_BROKER_URL).flushdb()
-    w = Worker(worker_cache_dir, tmp_path_factory.mktemp("logs") / "worker.log")
+    storage_dir = tmp_path_factory.mktemp("storage")
+    # The API (in this process) and the worker must share the storage directory.
+    os.environ["STORAGE_DIR"] = str(storage_dir)
+    get_settings.cache_clear()
+    get_storage.cache_clear()
+    w = Worker(worker_cache_dir, tmp_path_factory.mktemp("logs") / "worker.log", storage_dir)
     w.start()
     yield w
     w.stop()
+    del os.environ["STORAGE_DIR"]
+    get_settings.cache_clear()
+    get_storage.cache_clear()
 
 
 def truncate(engine: Engine) -> None:
     with engine.begin() as conn:
         conn.execute(
             text(
-                "TRUNCATE job_attempts, jobs, api_usage, users, rejected_rows, plays, players,"
-                " games, teams, datasets RESTART IDENTITY CASCADE"
+                "TRUNCATE report_exports, saved_reports, user_rejected_rows, user_plays,"
+                " user_datasets, job_attempts, jobs, api_usage, users, rejected_rows, plays,"
+                " players, games, teams, datasets RESTART IDENTITY CASCADE"
             )
         )
 
@@ -413,3 +426,43 @@ def attempts_worker(db: Session, job_id: str) -> str:
     )
     assert name
     return name
+
+
+def test_upload_report_and_export_pipeline(api: TestClient, db: Session, worker: Worker) -> None:
+    """Every M3 task type through the real worker: upload -> report -> export."""
+    from tests.integration.test_uploads import NFLVERSE_MAPPING, nflverse_csv
+
+    wait_status(db, submit(api), {JobStatus.SUCCEEDED}, worker)
+
+    created = api.post("/api/v1/uploads", files={"file": ("plays.csv", nflverse_csv(), "text/csv")})
+    assert created.status_code == 201, created.text
+    upload_id = created.json()["id"]
+    valid = api.post(f"/api/v1/uploads/{upload_id}/validate", json={"mapping": NFLVERSE_MAPPING})
+    assert valid.json()["valid"], valid.text
+    job = api.post(f"/api/v1/uploads/{upload_id}/process").json()
+    done = wait_status(db, job["id"], {JobStatus.SUCCEEDED, JobStatus.FAILED}, worker)
+    assert done.status == JobStatus.SUCCEEDED, done.error
+    db.expire_all()
+    dataset = db.get_one(UserDataset, uuid.UUID(upload_id))
+    assert dataset.status == UploadStatus.READY
+    assert done.result_ref and done.result_ref["stored"] == dataset.stored_count
+
+    def file_removed() -> bool:
+        db.expire_all()
+        return db.get_one(UserDataset, dataset.id).storage_key is None
+
+    wait_for(file_removed, timeout=10, what="upload file removed")
+    assert list((worker.storage_dir / "uploads").iterdir()) == []
+
+    report = api.post("/api/v1/reports", json={"team": "DET", "dataset_id": upload_id}).json()
+    wait_status(db, str(report["job_id"]), {JobStatus.SUCCEEDED}, worker)
+    body = api.get(f"/api/v1/reports/{report['id']}").json()
+    assert body["status"] == "ready"
+    assert body["report"]["dataset"]["kind"] == "upload"
+
+    export = api.post(f"/api/v1/reports/{report['id']}/exports", json={"format": "csv"}).json()
+    wait_status(db, str(export["job_id"]), {JobStatus.SUCCEEDED}, worker)
+    ready = api.get(f"/api/v1/reports/{report['id']}/exports/{export['id']}").json()
+    download = api.get(ready["download_url"])
+    assert download.status_code == 200
+    assert download.text.lstrip("\ufeff").startswith("section,side,item")

@@ -14,8 +14,9 @@ from app.db import get_sessionmaker
 from app.ingest.service import ingest_season
 from app.jobs import faults
 from app.jobs.handler_types import Checkpoint, Handler, HandlerResult
-from app.jobs.types import IMPORT_SEASON, IMPORT_UPLOAD
+from app.jobs.types import EXPORT_REPORT, GENERATE_REPORT, IMPORT_SEASON, IMPORT_UPLOAD
 from app.models import Job
+from app.reports.jobs import export_report_handler, generate_report_handler
 from app.uploads.processing import import_upload_handler
 
 __all__ = ["HANDLERS", "Checkpoint", "Handler", "HandlerResult"]
@@ -45,4 +46,6 @@ def import_season_handler(job: Job, checkpoint: Checkpoint) -> HandlerResult:
 HANDLERS: dict[str, Handler] = {
     IMPORT_SEASON: import_season_handler,
     IMPORT_UPLOAD: import_upload_handler,
+    GENERATE_REPORT: generate_report_handler,
+    EXPORT_REPORT: export_report_handler,
 }
