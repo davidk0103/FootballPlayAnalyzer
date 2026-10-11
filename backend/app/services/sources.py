@@ -5,22 +5,25 @@ tables and are only visible to their owner; any other caller gets 404, exactly a
 the dataset did not exist.
 """
 
+import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
 import pandas as pd
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.analytics.filters import PlayFilters
 from app.analytics.frame import team_view
-from app.models import Dataset
+from app.models import Dataset, User, UserDataset, UserPlay
 from app.repositories import plays as plays_repo
-from app.repositories.frames import public_season_frame
+from app.repositories.frames import public_season_frame, upload_frame
 from app.schemas import DatasetOut, TeamKey
 from app.services.catalog import require_team
 from app.services.errors import InvalidRequestError, NotFoundError
 
 PUBLIC_SOURCE = "nflverse pbp"
+UPLOAD_SOURCE = "user upload"
 
 
 @dataclass
@@ -81,3 +84,39 @@ def _public(session: Session, dataset: Dataset) -> PlaySource:
         public=True,
         team_names={},
     )
+
+
+def upload_source(session: Session, dataset_id: uuid.UUID, viewer: User | None) -> PlaySource:
+    from app.uploads.service import get_ready_upload
+
+    dataset: UserDataset = get_ready_upload(session, dataset_id, viewer)
+    version = dataset.content_version or dataset.sha256
+    owned = UserPlay.dataset_id == dataset.id
+    offenses = session.scalars(select(UserPlay.offense).where(owned).distinct())
+    defenses = session.scalars(select(UserPlay.defense).where(owned).distinct())
+    teams = sorted(set(offenses) | set(defenses))
+    return PlaySource(
+        load=lambda: upload_frame(session, dataset.id, version),
+        dataset=DatasetOut(
+            source=UPLOAD_SOURCE,
+            version=dataset.processed_at.isoformat() if dataset.processed_at else None,
+            sha256=dataset.sha256,
+            kind="upload",
+            id=str(dataset.id),
+            name=dataset.name,
+        ),
+        cache_season=0,
+        cache_sha=version,
+        cache_scope=f"upload:{dataset.id}",
+        public=False,
+        team_names={t: None for t in teams},
+    )
+
+
+def resolve_source(
+    session: Session, season: int | None, dataset_id: uuid.UUID | None, viewer: User | None
+) -> PlaySource:
+    """An owned upload when ``dataset_id`` is given, else the public season."""
+    if dataset_id is not None:
+        return upload_source(session, dataset_id, viewer)
+    return public_source(session, season)

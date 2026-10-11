@@ -8,6 +8,10 @@ class NotFoundError(Exception):
 class InvalidRequestError(Exception):
     """A request is well-formed but semantically invalid. Mapped to HTTP 422."""
 
+    def __init__(self, message: str, code: str = "validation_error") -> None:
+        super().__init__(message)
+        self.code = code
+
 
 class ConflictError(Exception):
     """The request conflicts with current state. Mapped to HTTP 409."""

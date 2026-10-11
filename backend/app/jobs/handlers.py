@@ -8,27 +8,17 @@ Work must be idempotent: a crashed attempt is re-run from the start.
 """
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
-from typing import Any
 
 from app.cache import get_cache
 from app.db import get_sessionmaker
 from app.ingest.service import ingest_season
 from app.jobs import faults
-from app.jobs.types import IMPORT_SEASON
+from app.jobs.handler_types import Checkpoint, Handler, HandlerResult
+from app.jobs.types import IMPORT_SEASON, IMPORT_UPLOAD
 from app.models import Job
+from app.uploads.processing import import_upload_handler
 
-Checkpoint = Callable[[str, int, int], None]
-
-
-@dataclass(frozen=True)
-class HandlerResult:
-    result: dict[str, Any]
-    # Runs after the job is committed as SUCCEEDED (e.g. cache invalidation).
-    after_success: list[Callable[[], object]] = field(default_factory=list)
-
-
-Handler = Callable[[Job, Checkpoint], HandlerResult]
+__all__ = ["HANDLERS", "Checkpoint", "Handler", "HandlerResult"]
 
 
 def import_season_handler(job: Job, checkpoint: Checkpoint) -> HandlerResult:
@@ -52,4 +42,7 @@ def import_season_handler(job: Job, checkpoint: Checkpoint) -> HandlerResult:
     return HandlerResult(summary.as_dict(), after_success=after)
 
 
-HANDLERS: dict[str, Handler] = {IMPORT_SEASON: import_season_handler}
+HANDLERS: dict[str, Handler] = {
+    IMPORT_SEASON: import_season_handler,
+    IMPORT_UPLOAD: import_upload_handler,
+}

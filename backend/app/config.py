@@ -54,6 +54,17 @@ class Settings(BaseSettings):
     csrf_header_name: str = "X-PlaybookIQ-CSRF"
     rate_limit_enabled: bool = True
 
+    # Private uploads and report exports. Must be a volume shared by API and workers.
+    storage_dir: Path = Path("data/storage")
+    upload_max_bytes: int = 25 * 1024 * 1024
+    upload_max_rows: int = 200_000
+    upload_max_columns: int = 100
+    upload_preview_rows: int = 20
+    # Rows checked by the synchronous "validate mapping" dry run.
+    upload_validate_sample_rows: int = 2_000
+    upload_job_timeout_seconds: int = 300
+    report_job_timeout_seconds: int = 120
+
     # Test-only: lets integration tests inject faults via Redis keys. Never enable in production.
     enable_fault_injection: bool = False
 

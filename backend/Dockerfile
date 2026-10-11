@@ -18,7 +18,7 @@ COPY alembic ./alembic
 COPY app ./app
 COPY scripts ./scripts
 
-RUN useradd --create-home --uid 1000 app && mkdir -p /app/data/cache && chown -R app /app/data
+RUN useradd --create-home --uid 1000 app && mkdir -p /app/data/cache /app/data/storage && chown -R app /app/data
 USER app
 
 EXPOSE 8317

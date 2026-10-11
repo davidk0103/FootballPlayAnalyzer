@@ -6,6 +6,7 @@ __pycache__/
 .ruff_cache/
 .pytest_cache/
 backend/data/cache/
+backend/data/storage/
 
 # Node
 node_modules/

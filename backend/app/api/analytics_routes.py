@@ -1,11 +1,12 @@
 """M3 analytics: situational explorer, efficiency, trends, tendencies, players, plays."""
 
+import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Query, Response
 
 from app.analytics.situational import GroupBy
-from app.api.deps import CacheDep, FiltersDep, SessionDep, ThresholdsDep
+from app.api.deps import CacheDep, FiltersDep, OptionalUserDep, SessionDep, ThresholdsDep
 from app.api.routes import CACHE_HEADER, ERRORS, NoCache
 from app.schemas import (
     EfficiencyResponse,
@@ -18,11 +19,15 @@ from app.schemas import (
     TrendsResponse,
 )
 from app.services import players, situational
-from app.services.sources import public_source
+from app.services.sources import resolve_source
 
 router = APIRouter(prefix="/api/v1", responses=ERRORS)
 
 TeamQuery = Annotated[str, Query(description="Team abbreviation (or id for public data)")]
+DatasetQuery = Annotated[
+    uuid.UUID | None,
+    Query(description="One of your processed uploads (requires sign-in); omit for public data"),
+]
 
 
 @router.get("/analytics/situational", tags=["analytics"])
@@ -32,14 +37,16 @@ def situational_explorer(
     session: SessionDep,
     cache: CacheDep,
     response: Response,
+    viewer: OptionalUserDep,
     group_by: Annotated[GroupBy, Query(description="Dimension to split plays by")] = (GroupBy.DOWN),
     team: Annotated[
         str | None, Query(description="Team abbreviation; omit for the whole league")
     ] = None,
+    dataset_id: DatasetQuery = None,
     no_cache: NoCache = False,
 ) -> SituationalResponse:
     """Metrics per situation bucket, with the league average in the same bucket."""
-    source = public_source(session, filters.season)
+    source = resolve_source(session, filters.season, dataset_id, viewer)
     result, status = situational.situational(
         session,
         source,
@@ -62,10 +69,12 @@ def efficiency(
     session: SessionDep,
     cache: CacheDep,
     response: Response,
+    viewer: OptionalUserDep,
+    dataset_id: DatasetQuery = None,
     no_cache: NoCache = False,
 ) -> EfficiencyResponse:
     """Passing vs rushing efficiency with league averages and the team's EPA rank."""
-    source = public_source(session, filters.season)
+    source = resolve_source(session, filters.season, dataset_id, viewer)
     result, status = situational.efficiency(
         session,
         source,
@@ -87,10 +96,12 @@ def trends(
     session: SessionDep,
     cache: CacheDep,
     response: Response,
+    viewer: OptionalUserDep,
+    dataset_id: DatasetQuery = None,
     no_cache: NoCache = False,
 ) -> TrendsResponse:
     """Per-game metrics in schedule order, with that week's league EPA/play."""
-    source = public_source(session, filters.season)
+    source = resolve_source(session, filters.season, dataset_id, viewer)
     result, status = situational.trends(
         session,
         source,
@@ -111,10 +122,12 @@ def team_tendencies(
     session: SessionDep,
     cache: CacheDep,
     response: Response,
+    viewer: OptionalUserDep,
+    dataset_id: DatasetQuery = None,
     no_cache: NoCache = False,
 ) -> TendenciesResponse:
     """Pass/run frequency by down and distance, plus a third-down breakdown."""
-    source = public_source(session, filters.season)
+    source = resolve_source(session, filters.season, dataset_id, viewer)
     result, status = situational.tendencies(
         session, source, filters, team_key=team_id, cache=cache, bypass_cache=no_cache
     )

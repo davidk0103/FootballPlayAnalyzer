@@ -103,7 +103,7 @@ def install_error_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(InvalidRequestError)
     async def invalid(request: Request, exc: InvalidRequestError) -> JSONResponse:
-        return error_response(request, 422, "validation_error", str(exc))
+        return error_response(request, 422, exc.code, str(exc))
 
     @app.exception_handler(RequestValidationError)
     async def validation(request: Request, exc: RequestValidationError) -> JSONResponse:

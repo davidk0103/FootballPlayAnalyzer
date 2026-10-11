@@ -40,11 +40,14 @@ services:
       BROKER_URL: redis://redis:6379/0
       CACHE_URL: redis://redis:6379/1
       DATA_CACHE_DIR: /app/data/cache
+      # Private uploads and report exports. Must be the same volume for API and workers.
+      STORAGE_DIR: /app/data/storage
       CORS_ORIGINS: '["http://localhost:5317","http://127.0.0.1:5317"]'
     ports:
       - "8317:8317"
     volumes:
       - nflverse-cache:/app/data/cache
+      - user-storage:/app/data/storage
     depends_on:
       db:
         condition: service_healthy
@@ -66,6 +69,7 @@ services:
       ENABLE_FAULT_INJECTION: ${ENABLE_FAULT_INJECTION:-false}
     volumes:
       - nflverse-cache:/app/data/cache
+      - user-storage:/app/data/storage
     # SIGTERM starts a warm shutdown: stop taking messages, let running imports finish.
     # Past this grace period Docker sends SIGKILL and crash recovery takes over.
     stop_signal: SIGTERM
@@ -142,3 +146,4 @@ volumes:
   pgdata:
   redisdata:
   nflverse-cache:
+  user-storage:

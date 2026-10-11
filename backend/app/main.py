@@ -5,6 +5,7 @@ from app.api.analytics_routes import router as analytics_router
 from app.api.auth_routes import router as auth_router
 from app.api.errors import csrf_middleware, install_error_handlers, request_id_middleware
 from app.api.routes import api, health
+from app.api.upload_routes import router as upload_router
 from app.config import get_settings
 
 
@@ -37,6 +38,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(api)
     app.include_router(analytics_router)
+    app.include_router(upload_router)
     return app
 
 

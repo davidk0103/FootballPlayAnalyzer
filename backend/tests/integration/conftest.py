@@ -23,6 +23,7 @@ from app.ingest.source import SourceFile, sha256_file
 from app.main import create_app
 from app.models import User
 from app.repositories.frames import clear_frame_cache
+from app.storage import get_storage
 from tests.conftest import PBP_SAMPLE, PLAYERS_SAMPLE
 from tests.integration import TEST_CACHE_URL
 
@@ -99,6 +100,7 @@ DEPENDENCIES: dict[str, Callable[..., Any]] = {
     "enqueue": get_enqueue,
     "cache": get_cache,
     "limiter": get_rate_limiter,
+    "storage": get_storage,
 }
 CSRF = {"X-PlaybookIQ-CSRF": "1"}
 PASSWORD = "correct-horse-battery"

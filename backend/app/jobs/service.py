@@ -53,6 +53,11 @@ def _scoped_key(user_id: int | None, key: str | None) -> str:
     return f"u{user_id or 0}:{key}"
 
 
+def find_by_idempotency_key(session: Session, user_id: int, key: str | None) -> Job | None:
+    """The job a user already created with this key, if any (for replay-before-precondition)."""
+    return None if key is None else repo.get_by_idempotency_key(session, _scoped_key(user_id, key))
+
+
 def submit_job(
     session: Session,
     *,
