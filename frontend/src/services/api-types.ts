@@ -504,6 +504,145 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/uploads/schema": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Upload Schema
+         * @description The standard fields an upload's columns can be mapped to.
+         */
+        get: operations["upload_schema_api_v1_uploads_schema_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Uploads */
+        get: operations["list_uploads_api_v1_uploads_get"];
+        put?: never;
+        /**
+         * Create Upload
+         * @description Store a CSV under a random name and inspect it. Contents are never executed.
+         */
+        post: operations["create_upload_api_v1_uploads_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/uploads/{upload_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Upload */
+        get: operations["get_upload_api_v1_uploads__upload_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Upload
+         * @description Delete the dataset, its stored rows, and its file. Saved reports keep their snapshot.
+         */
+        delete: operations["delete_upload_api_v1_uploads__upload_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/uploads/{upload_id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate Upload
+         * @description Dry-run a column mapping on the first rows. Saves the mapping when it is usable.
+         */
+        post: operations["validate_upload_api_v1_uploads__upload_id__validate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/uploads/{upload_id}/process": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Process Upload
+         * @description Start the background job that stores every valid row. Poll the returned job.
+         */
+        post: operations["process_upload_api_v1_uploads__upload_id__process_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/uploads/{upload_id}/teams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Upload Teams */
+        get: operations["upload_teams_api_v1_uploads__upload_id__teams_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/uploads/{upload_id}/rejected": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Upload Rejected Rows
+         * @description Rows that failed validation during processing, with the reason and original values.
+         */
+        get: operations["upload_rejected_rows_api_v1_uploads__upload_id__rejected_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -513,6 +652,16 @@ export interface components {
          * @enum {string}
          */
         AttemptStatus: "running" | "succeeded" | "failed" | "cancelled" | "lost";
+        /** Body_create_upload_api_v1_uploads_post */
+        Body_create_upload_api_v1_uploads_post: {
+            /**
+             * File
+             * @description CSV file, UTF-8, at most 25 MB
+             */
+            file: string;
+            /** Name */
+            name?: string | null;
+        };
         /** CacheStatsOut */
         CacheStatsOut: {
             /** Enabled */
@@ -883,6 +1032,16 @@ export interface components {
          * @enum {string}
          */
         JobStatus: "queued" | "running" | "retrying" | "cancel_requested" | "succeeded" | "failed" | "cancelled";
+        /** MappingIn */
+        MappingIn: {
+            /**
+             * Mapping
+             * @description Standard field name -> column in your file
+             */
+            mapping: {
+                [key: string]: string;
+            };
+        };
         /** MetricOut */
         MetricOut: {
             /** Value */
@@ -976,6 +1135,24 @@ export interface components {
             /** Limitations */
             limitations: string[];
         };
+        /** ProcessIn */
+        ProcessIn: {
+            /** Idempotency Key */
+            idempotency_key?: string | null;
+        };
+        /** QuarantinePage */
+        QuarantinePage: {
+            /** Items */
+            items: components["schemas"]["RowIssueOut"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+            /** Stored Limit */
+            stored_limit: number;
+        };
         /** RankOut */
         RankOut: {
             /** Metric */
@@ -999,12 +1176,36 @@ export interface components {
             /** Redis */
             redis: string;
         };
+        /** RowIssueOut */
+        RowIssueOut: {
+            /** Row Number */
+            row_number: number;
+            /** Reason */
+            reason: string;
+            /** Values */
+            values: {
+                [key: string]: string;
+            };
+        };
         /** SampleOut */
         SampleOut: {
             /** Plays */
             plays: number;
             /** Games */
             games: number;
+        };
+        /** SchemaFieldOut */
+        SchemaFieldOut: {
+            /** Name */
+            name: string;
+            /** Label */
+            label: string;
+            /** Kind */
+            kind: string;
+            /** Description */
+            description: string;
+            /** Required */
+            required: boolean;
         };
         /**
          * ScoreState
@@ -1083,6 +1284,15 @@ export interface components {
             dataset: components["schemas"]["DatasetOut"];
             /** Warnings */
             warnings: string[];
+        };
+        /** TeamCountOut */
+        TeamCountOut: {
+            /** Abbreviation */
+            abbreviation: string;
+            /** Offense Plays */
+            offense_plays: number;
+            /** Defense Plays */
+            defense_plays: number;
         };
         /**
          * TeamKey
@@ -1229,6 +1439,139 @@ export interface components {
             /** Games */
             games: components["schemas"]["TrendPointOut"][];
         };
+        /** UploadDetailOut */
+        UploadDetailOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Original Filename */
+            original_filename: string;
+            /** Size Bytes */
+            size_bytes: number;
+            status: components["schemas"]["UploadStatus"];
+            /** Delimiter */
+            delimiter: string;
+            /** Columns */
+            columns: string[];
+            /** Row Count */
+            row_count: number;
+            /** Mapping */
+            mapping: {
+                [key: string]: string;
+            } | null;
+            /** Stored Count */
+            stored_count: number | null;
+            /** Rejected Count */
+            rejected_count: number | null;
+            /**
+             * Seasons
+             * @default []
+             */
+            seasons: number[];
+            /** Warnings */
+            warnings: string[];
+            /** Error */
+            error: string | null;
+            /** Job Id */
+            job_id: string | null;
+            /** File Retained */
+            file_retained: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Processed At */
+            processed_at: string | null;
+            /** Preview */
+            preview: string[][];
+            /** Suggested Mapping */
+            suggested_mapping: {
+                [key: string]: string;
+            };
+            /** Schema Fields */
+            schema_fields: components["schemas"]["SchemaFieldOut"][];
+            job?: components["schemas"]["JobOut"] | null;
+        };
+        /** UploadOut */
+        UploadOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Original Filename */
+            original_filename: string;
+            /** Size Bytes */
+            size_bytes: number;
+            status: components["schemas"]["UploadStatus"];
+            /** Delimiter */
+            delimiter: string;
+            /** Columns */
+            columns: string[];
+            /** Row Count */
+            row_count: number;
+            /** Mapping */
+            mapping: {
+                [key: string]: string;
+            } | null;
+            /** Stored Count */
+            stored_count: number | null;
+            /** Rejected Count */
+            rejected_count: number | null;
+            /**
+             * Seasons
+             * @default []
+             */
+            seasons: number[];
+            /** Warnings */
+            warnings: string[];
+            /** Error */
+            error: string | null;
+            /** Job Id */
+            job_id: string | null;
+            /** File Retained */
+            file_retained: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Processed At */
+            processed_at: string | null;
+        };
+        /** UploadPage */
+        UploadPage: {
+            /** Items */
+            items: components["schemas"]["UploadOut"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * UploadStatus
+         * @enum {string}
+         */
+        UploadStatus: "uploaded" | "validated" | "processing" | "ready" | "failed";
         /** UserOut */
         UserOut: {
             /** Id */
@@ -1255,6 +1598,29 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /**
+         * ValidationOut
+         * @description Dry run of a mapping on the first rows of the file. Nothing is stored.
+         */
+        ValidationOut: {
+            /** Valid */
+            valid: boolean;
+            /** Mapping Errors */
+            mapping_errors: string[];
+            /** Checked Rows */
+            checked_rows: number;
+            /** Total Rows */
+            total_rows: number;
+            /** Accepted Rows */
+            accepted_rows: number;
+            /** Rejected Rows */
+            rejected_rows: number;
+            /** Issues */
+            issues: components["schemas"]["RowIssueOut"][];
+            /** Warnings */
+            warnings: string[];
+            upload: components["schemas"]["UploadOut"];
         };
     };
     responses: never;
@@ -2223,6 +2589,8 @@ export interface operations {
                 group_by?: components["schemas"]["GroupBy"];
                 /** @description Team abbreviation; omit for the whole league */
                 team?: string | null;
+                /** @description One of your processed uploads (requires sign-in); omit for public data */
+                dataset_id?: string | null;
                 /** @description Skip the analytics cache and compute fresh (response is not cached) */
                 no_cache?: boolean;
                 /** @description Season year, e.g. 2024. Required for public data; optional for uploads. */
@@ -2294,6 +2662,8 @@ export interface operations {
             query: {
                 /** @description Team abbreviation (or id for public data) */
                 team: string;
+                /** @description One of your processed uploads (requires sign-in); omit for public data */
+                dataset_id?: string | null;
                 /** @description Skip the analytics cache and compute fresh (response is not cached) */
                 no_cache?: boolean;
                 /** @description Season year, e.g. 2024. Required for public data; optional for uploads. */
@@ -2365,6 +2735,8 @@ export interface operations {
             query: {
                 /** @description Team abbreviation (or id for public data) */
                 team: string;
+                /** @description One of your processed uploads (requires sign-in); omit for public data */
+                dataset_id?: string | null;
                 /** @description Skip the analytics cache and compute fresh (response is not cached) */
                 no_cache?: boolean;
                 /** @description Season year, e.g. 2024. Required for public data; optional for uploads. */
@@ -2434,6 +2806,8 @@ export interface operations {
     team_tendencies_api_v1_teams__team_id__tendencies_get: {
         parameters: {
             query?: {
+                /** @description One of your processed uploads (requires sign-in); omit for public data */
+                dataset_id?: string | null;
                 /** @description Skip the analytics cache and compute fresh (response is not cached) */
                 no_cache?: boolean;
                 /** @description Season year, e.g. 2024. Required for public data; optional for uploads. */
@@ -2674,6 +3048,585 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["GamePlayPage"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    upload_schema_api_v1_uploads_schema_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchemaFieldOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    list_uploads_api_v1_uploads_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadPage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    create_upload_api_v1_uploads_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_create_upload_api_v1_uploads_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadDetailOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Request Entity Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    get_upload_api_v1_uploads__upload_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UploadDetailOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    delete_upload_api_v1_uploads__upload_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    validate_upload_api_v1_uploads__upload_id__validate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MappingIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    process_upload_api_v1_uploads__upload_id__process_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ProcessIn"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    upload_teams_api_v1_uploads__upload_id__teams_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamCountOut"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    upload_rejected_rows_api_v1_uploads__upload_id__rejected_get: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                upload_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuarantinePage"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
             /** @description Not Found */
